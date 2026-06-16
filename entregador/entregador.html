@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choji's Kitchen – Painel de Entregas</title>
+  <link rel="stylesheet" href="entregador.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">🍜</span>
+      <span class="brand-name">Choji's Kitchen</span>
+    </div>
+    <div class="nav-right">
+      <span class="nav-role">Entregas</span>
+      <button class="btn-sair">Sair</button>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-content">
+
+    <!-- Título -->
+    <div class="panel-header">
+      <div>
+        <h1 class="panel-title">
+          <svg class="title-icon" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <rect x="1" y="3" width="15" height="13" rx="1"/>
+            <path d="M16 8h4l3 5v3h-7V8z"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+          Painel de <span class="highlight">Entregas</span>
+        </h1>
+        <p class="panel-subtitle">Gerencie suas entregas e rotas</p>
+      </div>
+    </div>
+
+    <!-- ===== STAT CARDS ===== -->
+    <div class="stat-grid">
+
+      <!-- Disponíveis -->
+      <div class="stat-card stat-blue">
+        <div class="stat-left">
+          <span class="stat-label">Disponíveis</span>
+          <span class="stat-number" id="statDisponiveis">0</span>
+        </div>
+        <div class="stat-icon-wrap icon-blue">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 3H8l-2 4h12l-2-4z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Em Andamento -->
+      <div class="stat-card stat-yellow">
+        <div class="stat-left">
+          <span class="stat-label">Em Andamento</span>
+          <span class="stat-number" id="statAndamento">0</span>
+        </div>
+        <div class="stat-icon-wrap icon-yellow">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <rect x="1" y="3" width="15" height="13" rx="1"/>
+            <path d="M16 8h4l3 5v3h-7V8z"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Concluídas Hoje -->
+      <div class="stat-card stat-green">
+        <div class="stat-left">
+          <span class="stat-label">Concluídas Hoje</span>
+          <span class="stat-number" id="statConcluidas">0</span>
+        </div>
+        <div class="stat-icon-wrap icon-green">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== DELIVERY LIST PANEL ===== -->
+    <div class="delivery-panel">
+
+      <!-- Toolbar -->
+      <div class="panel-toolbar">
+        <div class="toolbar-left">
+          <button class="filter-btn active" data-filter="disponiveis">Disponíveis</button>
+          <button class="filter-btn" data-filter="andamento">Em Andamento</button>
+          <button class="filter-btn" data-filter="concluidas">Concluídas</button>
+        </div>
+        <button class="btn-add-delivery" id="btnAddDelivery" style="display:none">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nova Entrega
+        </button>
+      </div>
+
+      <!-- List -->
+      <div class="delivery-list" id="deliveryList">
+        <!-- preenchido pelo JS -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+        <div class="footer-brand-name">🍜 Choji's Kitchen</div>
+        <p class="footer-brand-desc">Comida deliciosa e farta, assim como o Choji gosta!<br>Sabores que aquecem o coração.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Links Rápidos</h4>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Cardápio</a></li>
+          <li><a href="#">Fazer Pedido</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contato</h4>
+        <ul class="footer-contact">
+          <li>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Rua da Gastronomia, 456<br>Jardim Gourmet – São Paulo, SP
+          </li>
+          <li>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+            (11) 3456-7890
+          </li>
+          <li>
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            contato@chojiskitchen.com
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Redes Sociais</h4>
+        <div class="social-links">
+          <a href="#" class="social-btn" aria-label="Facebook">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+          <a href="#" class="social-btn" aria-label="Instagram">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" class="social-btn" aria-label="Twitter">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Choji's Kitchen. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Help button -->
+  <button class="btn-help" aria-label="Ajuda">?</button>
+
+  <!-- ===== MODAL ===== -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3 class="modal-title">Nova Entrega</h3>
+      <div class="modal-form">
+        <label>Cliente / Pedido
+          <input type="text" id="inputCliente" placeholder="Ex: João Silva – Pedido #042" />
+        </label>
+        <label>Endereço de Entrega
+          <input type="text" id="inputEndereco" placeholder="Ex: Av. Paulista, 1000 – Apto 12" />
+        </label>
+        <label>Itens
+          <input type="text" id="inputItens" placeholder="Ex: 2x Tonkotsu, 1x Gyoza" />
+        </label>
+        <label>Entregador
+          <input type="text" id="inputEntregador" placeholder="Ex: Kenji Yamada" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btnCancelModal">Cancelar</button>
+        <button class="btn-confirm" id="btnConfirmModal">Criar Entrega</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="entregador.js"></script>
+</body>
+</html>

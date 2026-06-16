@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Pedidos - Choji's Kitchen</title>
+<link rel="stylesheet" href="pedidos.css">
+</head>
+<body>
+<nav class="top-nav">
+  <div class="container">
+    <div class="logo">🍜 Choji's Kitchen</div>
+    <ul class="nav-links">
+      <li><a href="gerente.html">Dashboard</a></li>
+      <li><a href="cardapio.html">Cardápio</a></li>
+      <li><a href="pedidos.html">Pedidos</a></li>
+      <li><a href="entregas.html">Entregas</a></li>
+      <li><a href="usuarios.html">Usuários</a></li>
+      <li><a href="estoque.html">Estoque</a></li>
+      <li><button class="btn-sair" onclick="window.location.href='../index.html'">Sair</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title">Gestão de <span class="accent">Pedidos</span></h1>
+      <p class="page-subtitle">Visualize, atualize status e gerencie todos os pedidos</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">📦 Hoje</div><div class="stat-value">6</div></div>
+      <div class="stat-card"><div class="stat-label">🕐 Recebidos</div><div class="stat-value">1</div></div>
+      <div class="stat-card s-blue"><div class="stat-label">👨‍🍳 Em Preparo</div><div class="stat-value">1</div></div>
+      <div class="stat-card s-purple"><div class="stat-label">📦 Prontos</div><div class="stat-value">1</div></div>
+      <div class="stat-card s-yellow"><div class="stat-label">🚚 Em Entrega</div><div class="stat-value">1</div></div>
+      <div class="stat-card s-green"><div class="stat-label">✓ Entregues</div><div class="stat-value">1</div></div>
+    </div>
+
+    <div class="filtros">
+      <div class="filtros-title"><span class="icon">▽</span> Filtros</div>
+      <div class="filtros-row">
+        <div class="search-wrap"><input type="text" placeholder="Buscar por nº pedido ou cliente..."></div>
+        <select><option>Todos os status</option><option>Recebido</option><option>Em Preparo</option><option>Pronto</option><option>Saiu para Entrega</option><option>Entregue</option><option>Cancelado</option></select>
+        <input type="text" placeholder="dd/mm/aaaa">
+        <button class="btn-clear">Limpar</button>
+      </div>
+    </div>
+
+    <div class="orders-list" id="ordersList"></div>
+  </div>
+</main>
+
+<!-- MODAL DETALHES -->
+<div class="modal-overlay" id="modalDetalhes">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeModal('modalDetalhes')">×</button>
+    <h2>Detalhes do Pedido <span class="accent" id="dNum"></span></h2>
+    <p class="subtitle" id="dData"></p>
+
+    <div class="status-block">
+      <span class="muted">Status Atual:</span>
+      <span class="status-pill" id="dStatus"></span>
+    </div>
+
+    <div class="info-row">
+      <div class="info-card">
+        <div class="info-title"><span class="accent">👤 Cliente</span></div>
+        <div class="info-body">
+          <div id="dCliente"></div>
+          <div id="dTel" class="muted-sm"></div>
+        </div>
+      </div>
+      <div class="info-card">
+        <div class="info-title"><span class="accent">$ Pagamento</span></div>
+        <div class="info-body">
+          <div id="dPag"></div>
+          <div class="price-big" id="dTotal2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-title"><span class="accent">🚚 Endereço de Entrega</span></div>
+      <div class="info-body" id="dEnd"></div>
+    </div>
+
+    <h3 class="items-title">Itens do Pedido (<span id="dQtd"></span>)</h3>
+    <div id="dItens" class="items-list"></div>
+
+    <hr class="sep">
+    <div class="total-row"><strong>Total do Pedido:</strong><span class="accent price-big" id="dTotal"></span></div>
+
+    <div class="modal-actions">
+      <button class="btn-outline-orange" onclick="openStatus(currentId)">⟳ Atualizar Status</button>
+      <button class="btn-outline-red" onclick="openCancel(currentId)">⊘ Cancelar Pedido</button>
+      <button class="btn-cancel" onclick="closeModal('modalDetalhes')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL STATUS -->
+<div class="modal-overlay" id="modalStatus">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalStatus')">×</button>
+    <h2>Atualizar Status</h2>
+    <p class="subtitle" id="sInfo"></p>
+
+    <div class="status-block">
+      <span class="muted">Status atual:</span>
+      <span class="status-pill" id="sCurrent"></span>
+    </div>
+
+    <div class="form-group">
+      <label>Novo Status</label>
+      <select id="sNew">
+        <option>Recebido</option><option>Em Preparo</option><option>Pronto</option><option>Saiu para Entrega</option><option>Entregue</option>
+      </select>
+    </div>
+
+    <div class="info-blue">ℹ O cliente receberá uma notificação automática sobre a mudança de status</div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalStatus')">Cancelar</button>
+      <button class="btn-orange" onclick="confirmStatus()">⟳ Atualizar Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CANCELAR -->
+<div class="modal-overlay" id="modalCancel">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalCancel')">×</button>
+    <h2>Cancelar Pedido</h2>
+    <p class="subtitle">Esta ação não pode ser desfeita.</p>
+    <p class="confirm-text">Tem certeza que deseja cancelar o pedido <strong class="accent" id="cNum"></strong> de <strong id="cCliente"></strong>?</p>
+
+    <div class="alert-red">
+      <div class="alert-title">⊘ Atenção</div>
+      <div>O cliente será notificado sobre o cancelamento.</div>
+    </div>
+
+    <div class="detail-box">
+      <div>Detalhes do pedido:</div>
+      <div>Total: <span class="accent" id="cTotal"></span></div>
+      <div>Status atual: <strong id="cStatus"></strong></div>
+      <div>Itens: <strong id="cItens"></strong></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalCancel')">Voltar</button>
+      <button class="btn-delete" onclick="confirmCancel()">⊘ Confirmar Cancelamento</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3 class="footer-brand">🍜 Choji's Kitchen</h3>
+        <p class="footer-desc">Comida deliciosa e farta, assim como o Choji gosta! Sabores que aquecem o coração.</p>
+      </div>
+      <div class="footer-col"><h4>Links Rápidos</h4><ul class="footer-links"><li><a href="#">Home</a></li><li><a href="cardapio.html">Cardápio</a></li><li><a href="#">Fazer Pedido</a></li></ul></div>
+      <div class="footer-col"><h4>Contato</h4><ul class="footer-contact"><li>📍 Rua da Gastronomia, 456<br>Jardim Gourmet - São Paulo, SP</li><li>📞 (11) 3456-7890</li><li>✉ contato@chojiskitchen.com</li></ul></div>
+      <div class="footer-col"><h4>Redes Sociais</h4><div class="footer-social"><a href="#">f</a><a href="#">📷</a><a href="#">🐦</a></div></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 Choji's Kitchen. Todos os direitos reservados.</p></div>
+  </div>
+</footer>
+
+<script src="pedidos.js"></script>
+</body>
+</html>

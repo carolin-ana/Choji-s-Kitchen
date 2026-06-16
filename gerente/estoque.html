@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Estoque - Choji's Kitchen</title>
+<link rel="stylesheet" href="estoque.css">
+</head>
+<body>
+<nav class="top-nav">
+  <div class="container">
+    <div class="logo">🍜 Choji's Kitchen</div>
+    <ul class="nav-links">
+      <li><a href="gerente.html">Dashboard</a></li>
+      <li><a href="cardapio.html">Cardápio</a></li>
+      <li><a href="pedidos.html">Pedidos</a></li>
+      <li><a href="entregas.html">Entregas</a></li>
+      <li><a href="usuarios.html">Usuários</a></li>
+      <li><a href="estoque.html" class="active">Estoque</a></li>
+      <li><button class="btn-sair" onclick="window.location.href='../index.html'">Sair</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Gestão de <span class="accent">Estoque</span></h1>
+        <p class="page-subtitle">Controle completo do inventário da cozinha</p>
+      </div>
+      <button class="btn-novo" onclick="openModal('modalNovo')">+ Adicionar Item</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-text">
+          <div class="stat-label">Total de Itens</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-icon">📦</div>
+      </div>
+      <div class="stat-card s-red">
+        <div class="stat-text">
+          <div class="stat-label">Estoque Baixo</div>
+          <div class="stat-value" id="statBaixo">0</div>
+        </div>
+        <div class="stat-icon">⚠</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-text">
+          <div class="stat-label">Valor Total</div>
+          <div class="stat-value red" id="statValor">R$ 0,00</div>
+        </div>
+        <div class="stat-icon">📈</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-text">
+          <div class="stat-label">Fornecedores</div>
+          <div class="stat-value" id="statForn">0</div>
+        </div>
+        <div class="stat-icon">📦</div>
+      </div>
+    </div>
+
+    <div class="filtros">
+      <div class="filtros-row">
+        <div class="search-wrap"><input type="text" id="searchInput" placeholder="Buscar item ou fornecedor..." oninput="render()"></div>
+        <select id="catFilter" onchange="render()">
+          <option value="">Todas as Categorias</option>
+          <option>Proteínas</option>
+          <option>Massas e Grãos</option>
+          <option>Temperos e Condimentos</option>
+          <option>Vegetais</option>
+          <option>Embalagens</option>
+        </select>
+        <button class="btn-filter" id="btnBaixo" onclick="toggleBaixo()">▽ Filtrar Estoque Baixo</button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-head">
+        <div>Item</div>
+        <div>Categoria</div>
+        <div class="center">Estoque</div>
+        <div class="center">Status</div>
+        <div>Fornecedor</div>
+        <div>Custo/Un.</div>
+        <div>Ações</div>
+      </div>
+      <div id="itemsList"></div>
+    </div>
+
+    <div class="mov-card">
+      <div class="mov-head">
+        <h2>Movimentações <span class="accent">Recentes</span></h2>
+        <button class="btn-ver" onclick="openModal('modalHist')">Ver Todas</button>
+      </div>
+      <div id="movList"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL NOVO ITEM -->
+<div class="modal-overlay" id="modalNovo">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalNovo')">×</button>
+    <h2>Adicionar Item ao Estoque</h2>
+    <p class="subtitle">Preencha as informações do novo item</p>
+    <form onsubmit="event.preventDefault(); addItem();">
+      <div class="form-row two">
+        <div><label>Nome do Item *</label><input id="nNome" type="text" placeholder="Ex: Macarrão de Lámen" required></div>
+        <div><label>Categoria *</label>
+          <select id="nCat" required>
+            <option value="">Selecione</option>
+            <option>Proteínas</option><option>Massas e Grãos</option>
+            <option>Temperos e Condimentos</option><option>Vegetais</option><option>Embalagens</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row three">
+        <div><label>Estoque Atual *</label><input id="nAtual" type="number" value="0" required></div>
+        <div><label>Estoque Mínimo *</label><input id="nMin" type="number" value="0" required></div>
+        <div><label>Estoque Máximo *</label><input id="nMax" type="number" value="0" required></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Unidade *</label><input id="nUnid" type="text" placeholder="kg, L, unid, etc" required></div>
+        <div><label>Custo/Unidade *</label><input id="nCusto" type="number" step="0.01" placeholder="0.00" required></div>
+        <div><label>Fornecedor</label><input id="nForn" type="text" placeholder="Nome do fornecedor"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('modalNovo')">Cancelar</button>
+        <button type="submit" class="btn-primary">Adicionar Item</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalEditar')">×</button>
+    <h2>Editar Item</h2>
+    <p class="subtitle">Atualize as informações do item</p>
+    <form onsubmit="event.preventDefault(); saveEdit();">
+      <div class="form-row two">
+        <div><label>Nome do Item *</label><input id="eNome" type="text" required></div>
+        <div><label>Categoria *</label>
+          <select id="eCat" required>
+            <option>Proteínas</option><option>Massas e Grãos</option>
+            <option>Temperos e Condimentos</option><option>Vegetais</option><option>Embalagens</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row three">
+        <div><label>Estoque Atual *</label><input id="eAtual" type="number" required></div>
+        <div><label>Estoque Mínimo *</label><input id="eMin" type="number" required></div>
+        <div><label>Estoque Máximo *</label><input id="eMax" type="number" required></div>
+      </div>
+      <div class="form-row three">
+        <div><label>Unidade *</label><input id="eUnid" type="text" required></div>
+        <div><label>Custo/Unidade *</label><input id="eCusto" type="number" step="0.01" required></div>
+        <div><label>Fornecedor</label><input id="eForn" type="text"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('modalEditar')">Cancelar</button>
+        <button type="submit" class="btn-primary">Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL AJUSTAR -->
+<div class="modal-overlay" id="modalAjustar">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalAjustar')">×</button>
+    <h2>Ajustar Estoque</h2>
+    <p class="subtitle" id="ajustarSub"></p>
+    <div class="form-group">
+      <label>Tipo de Movimentação</label>
+      <div class="tipo-row">
+        <button type="button" class="tipo-btn entrada active" id="btnEntrada" onclick="setTipo('entrada')">↗ Entrada</button>
+        <button type="button" class="tipo-btn saida" id="btnSaida" onclick="setTipo('saida')">↘ Saída</button>
+      </div>
+    </div>
+    <div class="form-group"><label id="qtdLabel">Quantidade</label><input id="aQtd" type="number" value="0"></div>
+    <div class="form-group"><label>Motivo</label>
+      <select id="aMotivo">
+        <option value="">Selecione o motivo</option>
+        <option>Compra semanal</option>
+        <option>Produção do dia</option>
+        <option>Ajuste de inventário</option>
+        <option>Perda/Avaria</option>
+        <option>Devolução</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" onclick="closeModal('modalAjustar')">Cancelar</button>
+      <button type="button" class="btn-primary" id="btnConfirm" onclick="confirmAjuste()">Confirmar Entrada</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EXCLUIR -->
+<div class="modal-overlay" id="modalExcluir">
+  <div class="modal modal-sm">
+    <button class="modal-close" onclick="closeModal('modalExcluir')">×</button>
+    <h2>Excluir Item</h2>
+    <p class="subtitle">Tem certeza que deseja excluir <strong id="excluirNome"></strong>? Essa ação não pode ser desfeita.</p>
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" onclick="closeModal('modalExcluir')">Cancelar</button>
+      <button type="button" class="btn-danger" onclick="confirmExcluir()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO -->
+<div class="modal-overlay" id="modalHist">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeModal('modalHist')">×</button>
+    <h2>Histórico de Movimentações</h2>
+    <p class="subtitle">Todas as entradas e saídas registradas</p>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<script src="estoque.js"></script>
+</body>
+</html>

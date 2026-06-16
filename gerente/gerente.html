@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial - Choji's Kitchen</title>
+    <link rel="stylesheet" href="gerente.css">
+    
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="container">
+            <div class="logo">🍜 Choji's Kitchen</div>
+            <ul class="nav-links">
+                <li><a href="#">Dashboard</a></li>
+                <li><a href="cardapio.html">Cardápio</a></li>
+                <li><a href="pedidos.html">Pedidos</a></li>
+                <li><a href="entregas.html">Entregas</a></li>
+                <li><a href="usuarios.html">Usuários</a></li>
+                <li><a href="estoque.html">Estoque</a></li>
+                <li><button class="btn-sair" onclick="window.location.href='../index.html'">Sair</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Dashboard <span class="accent">Gerencial</span></h1>
+                <p class="page-subtitle">Visão geral do desempenho do restaurante</p>
+            </div>
+            <select class="period-select">
+                <option value="semana">Esta Semana</option>
+                <option value="mes">Este Mês</option>
+                <option value="ano">Este Ano</option>
+            </select>
+        </div>
+
+        <h2 class="section-title">Desempenho de <span class="accent">Esta Semana</span></h2>
+
+        <div class="highlight-grid">
+            <div class="h-card red">
+                <div class="h-card-top">
+                    <div class="h-card-label">$ Receita Total</div>
+                    <div class="h-card-icon">$</div>
+                </div>
+                <div class="h-card-value">R$ 26.850</div>
+                <div class="h-card-trend">↗ +12.6% vs período anterior (R$ 23.850)</div>
+                <hr>
+                <div class="h-card-footer"><span>Meta: R$ 30.000</span></div>
+                <div class="progress"><div class="progress-bar"></div></div>
+            </div>
+            <div class="h-card orange">
+                <div class="h-card-top">
+                    <div class="h-card-label">📦 Pedidos</div>
+                    <div class="h-card-icon">🛍</div>
+                </div>
+                <div class="h-card-value">248</div>
+                <div class="h-card-trend">↗ +8.3% vs período anterior (229 pedidos)</div>
+                <hr>
+                <div class="h-card-footer"><span>Entregues: 218</span><span>Em andamento: 30</span></div>
+            </div>
+            <div class="h-card purple">
+                <div class="h-card-top">
+                    <div class="h-card-label">$ Ticket Médio</div>
+                    <div class="h-card-icon">$</div>
+                </div>
+                <div class="h-card-value">R$ 108</div>
+                <div class="h-card-trend">↗ +3.8% vs período anterior (R$ 104)</div>
+                <hr>
+                <div class="h-card-footer"><span>Melhor: R$ 5.200 (Sábado)</span></div>
+            </div>
+        </div>
+
+        <div class="mgmt-grid">
+            <div class="mgmt-card orange">
+                <div class="mgmt-icon">🍽</div>
+                <div class="mgmt-body">
+                    <h3>Gestão do Cardápio</h3>
+                    <p>Adicione, edite ou desative pratos</p>
+                </div>
+                <button class="mgmt-btn" onclick="window.location.href='cardapio.html'">🍽 Gerenciar</button>
+            </div>
+            <div class="mgmt-card red">
+                <div class="mgmt-icon">📦</div>
+                <div class="mgmt-body">
+                    <h3>Gestão de Pedidos</h3>
+                    <p>Visualize e atualize pedidos</p>
+                </div>
+                <button class="mgmt-btn" onclick="window.location.href='pedidos.html'">📦 Gerenciar</button>
+            </div>
+            <div class="mgmt-card green">
+                <div class="mgmt-icon">📦</div>
+                <div class="mgmt-body">
+                    <h3>Gestão de Estoque</h3>
+                    <p>Controle ingredientes e alertas</p>
+                </div>
+                <button class="mgmt-btn" onclick="window.location.href='estoque.html'">📦 Gerenciar</button>
+            </div>
+        </div>
+
+        <h2 class="section-title">Visão <span class="accent">Geral</span></h2>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Faturamento</span>
+                    <div class="stat-icon pink">$</div>
+                </div>
+                <div class="stat-value">R$ 26.850</div>
+                <div class="stat-trend">↗ +12.5% vs semana passada</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Total de Pedidos</span>
+                    <div class="stat-icon orange">🛍</div>
+                </div>
+                <div class="stat-value">248</div>
+                <div class="stat-trend">↗ +8.2% vs semana passada</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Ticket Médio</span>
+                    <div class="stat-icon blue">$</div>
+                </div>
+                <div class="stat-value">R$ 108</div>
+                <div class="stat-trend">↗ +3.8% vs semana passada</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">Clientes Ativos</span>
+                    <div class="stat-icon purple">👥</div>
+                </div>
+                <div class="stat-value">1.284</div>
+                <div class="stat-trend">↗ +15.3% vs semana passada</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Vendas por <span class="accent">Período</span></h3>
+                <div class="chart-wrap"><canvas id="salesChart"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>Pratos Mais <span class="accent">Vendidos</span></h3>
+                <div class="chart-wrap"><canvas id="dishesChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div class="chart-card">
+                <h3>Pedidos por <span class="accent">Categoria</span></h3>
+                <div class="chart-wrap"><canvas id="categoryChart"></canvas></div>
+            </div>
+            <div class="orders-card">
+                <div class="orders-header">
+                    <h3 style="font-family:Georgia,serif;font-weight:normal;font-size:1.25rem;">Pedidos <span class="accent" style="color:#BC1A37">Recentes</span></h3>
+                    <button class="btn-outline">Ver Todos</button>
+                </div>
+                <table class="orders-table">
+                    <thead>
+                        <tr><th>Nº Pedido</th><th>Cliente</th><th>Total</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>#12348</td><td>João Silva</td><td class="total">R$ 186.00</td><td><span class="status entregue">Entregue</span></td></tr>
+                        <tr><td>#12347</td><td>Maria Santos</td><td class="total">R$ 106.00</td><td><span class="status rota">Em Rota</span></td></tr>
+                        <tr><td>#12346</td><td>Pedro Oliveira</td><td class="total">R$ 112.00</td><td><span class="status entregue">Entregue</span></td></tr>
+                        <tr><td>#12345</td><td>Ana Costa</td><td class="total">R$ 146.00</td><td><span class="status entregue">Entregue</span></td></tr>
+                        <tr><td>#12344</td><td>Carlos Souza</td><td class="total">R$ 92.00</td><td><span class="status entregue">Entregue</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3 class="footer-brand">🍜 Choji's Kitchen</h3>
+                    <p class="footer-desc">Comida deliciosa e farta, assim como o Choji gosta! Sabores que aquecem o coração.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Links Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Cardápio</a></li>
+                        <li><a href="#">Fazer Pedido</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contato</h4>
+                    <ul class="footer-contact">
+                        <li><span class="icon">📍</span><span>Rua da Gastronomia, 456<br>Jardim Gourmet - São Paulo, SP</span></li>
+                        <li><span class="icon">📞</span><span>(11) 3456-7890</span></li>
+                        <li><span class="icon">✉</span><span>contato@chojiskitchen.com</span></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Redes Sociais</h4>
+                    <div class="footer-social">
+                        <a href="#">f</a><a href="#">📷</a><a href="#">🐦</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Choji's Kitchen. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="gerente.js"></script>
+</body>
+</html>

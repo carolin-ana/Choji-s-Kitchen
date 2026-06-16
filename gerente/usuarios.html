@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Usuários - Choji's Kitchen</title>
+<link rel="stylesheet" href="usuarios.css">
+</head>
+<body>
+<nav class="top-nav">
+  <div class="container">
+    <div class="logo">🍜 Choji's Kitchen</div>
+    <ul class="nav-links">
+      <li><a href="gerente.html">Dashboard</a></li>
+      <li><a href="cardapio.html">Cardápio</a></li>
+      <li><a href="pedidos.html">Pedidos</a></li>
+      <li><a href="entregas.html">Entregas</a></li>
+      <li><a href="usuarios.html" class="active">Usuários</a></li>
+      <li><a href="estoque.html">Estoque</a></li>
+      <li><button class="btn-sair" onclick="window.location.href='../index.html'">Sair</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gestão de <span class="accent">Usuários</span></h1>
+      <p class="page-subtitle">Crie e gerencie usuários da cozinha e entregadores</p>
+    </div>
+    <button class="btn-novo" onclick="openNovoUsuario()">👤+ Novo Usuário</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">👥 Total</div><div class="stat-value">5</div></div>
+    <div class="stat-card orange"><div class="stat-label">👨‍🍳 Cozinha</div><div class="stat-value">3</div></div>
+    <div class="stat-card blue"><div class="stat-label">🛵 Entregadores</div><div class="stat-value">2</div></div>
+    <div class="stat-card green"><div class="stat-label">✓ Ativos</div><div class="stat-value">4</div></div>
+  </div>
+
+  <div class="filters-card">
+    <h3>▽ Filtros</h3>
+    <div class="filters-row">
+      <input type="text" placeholder="🔍 Buscar por nome ou email...">
+      <select><option>Todas as funções</option><option>Cozinha</option><option>Entregador</option></select>
+      <select><option>Todos os status</option><option>Ativo</option><option>Inativo</option></select>
+    </div>
+  </div>
+
+  <div class="users-list" id="usersList"></div>
+</main>
+
+<!-- Modal: Novo Usuário -->
+<div class="modal-overlay" id="modalNovo">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalNovo')">×</button>
+    <h2 class="modal-title">Novo Usuário</h2>
+    <p class="modal-subtitle">Crie um novo usuário da cozinha ou entregador</p>
+    <div class="form-group"><label>Função *</label>
+      <select><option>👨‍🍳 Cozinha</option><option>🛵 Entregador</option></select>
+    </div>
+    <div class="form-group"><label>Nome Completo *</label><input type="text" placeholder="Ex: João Silva"></div>
+    <div class="form-group"><label>Email *</label><input type="email" placeholder="email@chojiskitchen.com"></div>
+    <div class="form-group"><label>Telefone *</label><input type="text" placeholder="(11) 98765-4321"></div>
+    <div class="form-group"><label>Senha *</label><input type="password" placeholder="Mínimo 8 caracteres"></div>
+    <div class="form-group"><label>Permissões</label>
+      <div class="perm-box">
+        <label class="perm"><input type="checkbox"><div><strong>Visualizar Pedidos</strong><span>Ver todos os pedidos do sistema</span></div></label>
+        <label class="perm"><input type="checkbox"><div><strong>Atualizar Status</strong><span>Modificar status dos pedidos</span></div></label>
+        <label class="perm"><input type="checkbox"><div><strong>Gerenciar Cardápio</strong><span>Editar itens do cardápio</span></div></label>
+        <label class="perm"><input type="checkbox"><div><strong>Ver Receitas</strong><span>Acessar receitas e preparos</span></div></label>
+      </div>
+    </div>
+    <div class="info-banner blue">ℹ O usuário receberá um email com as credenciais de acesso</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalNovo')">Cancelar</button>
+      <button class="btn-primary red">👤+ Criar Usuário</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Usuário -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalEditar')">×</button>
+    <h2 class="modal-title">Editar Usuário</h2>
+    <p class="modal-subtitle">Atualize as informações do usuário</p>
+    <div class="form-group"><label>Função</label>
+      <select><option>👨‍🍳 Cozinha</option><option>🛵 Entregador</option></select>
+    </div>
+    <div class="form-group"><label>Nome Completo</label><input type="text" id="editNome"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="editEmail"></div>
+    <div class="form-group"><label>Telefone</label><input type="text" id="editTel"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalEditar')">Cancelar</button>
+      <button class="btn-primary orange">✎ Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Gerenciar Permissões -->
+<div class="modal-overlay" id="modalPerm">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalPerm')">×</button>
+    <h2 class="modal-title">Gerenciar Permissões</h2>
+    <p class="modal-subtitle" id="permUser">Carlos Tanaka - Cozinha</p>
+    <div class="perm-box">
+      <label class="perm"><input type="checkbox" checked><div><strong>Visualizar Pedidos</strong><span>Ver todos os pedidos do sistema</span></div></label>
+      <label class="perm"><input type="checkbox" checked><div><strong>Atualizar Status</strong><span>Modificar status dos pedidos</span></div></label>
+      <label class="perm"><input type="checkbox"><div><strong>Gerenciar Cardápio</strong><span>Editar itens do cardápio</span></div></label>
+      <label class="perm"><input type="checkbox" checked><div><strong>Ver Receitas</strong><span>Acessar receitas e preparos</span></div></label>
+    </div>
+    <div class="info-banner yellow">⚠ As alterações entrarão em vigor imediatamente</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalPerm')">Cancelar</button>
+      <button class="btn-primary blue">🛡 Salvar Permissões</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Desativar Usuário -->
+<div class="modal-overlay" id="modalDesativar">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalDesativar')">×</button>
+    <h2 class="modal-title">Desativar Usuário</h2>
+    <p class="modal-subtitle">O usuário não poderá mais acessar o sistema</p>
+    <p class="confirm-text">Tem certeza que deseja <strong>desativar</strong> o usuário <strong id="desativarNome">Carlos Tanaka</strong>?</p>
+    <div class="info-banner red"><strong>⊘ Atenção</strong><br>O acesso ao sistema será bloqueado imediatamente</div>
+    <div class="info-box">
+      <div>Função: <strong id="desativarFuncao">Cozinha</strong></div>
+      <div>Email: <strong id="desativarEmail">carlos.tanaka@chojiskitchen.com</strong></div>
+      <div>Permissões ativas: <strong>3</strong></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalDesativar')">Cancelar</button>
+      <button class="btn-primary red">⊘ Desativar</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3 class="footer-brand">🍜 Choji's Kitchen</h3>
+        <p class="footer-desc">Comida deliciosa e farta, assim como o Choji gosta! Sabores que aquecem o coração.</p>
+      </div>
+      <div class="footer-col"><h4>Links Rápidos</h4>
+        <ul class="footer-links"><li><a href="#">Home</a></li><li><a href="cardapio.html">Cardápio</a></li><li><a href="#">Fazer Pedido</a></li></ul>
+      </div>
+      <div class="footer-col"><h4>Contato</h4>
+        <ul class="footer-contact">
+          <li>📍 Rua da Gastronomia, 456 - São Paulo, SP</li>
+          <li>📞 (11) 3456-7890</li>
+          <li>✉ contato@chojiskitchen.com</li>
+        </ul>
+      </div>
+      <div class="footer-col"><h4>Redes Sociais</h4><div class="footer-social"><a href="#">f</a><a href="#">📷</a><a href="#">🐦</a></div></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 Choji's Kitchen. Todos os direitos reservados.</p></div>
+  </div>
+</footer>
+
+<script src="usuarios.js"></script>
+</body>
+</html>

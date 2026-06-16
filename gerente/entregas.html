@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão de Entregas - Choji's Kitchen</title>
+<link rel="stylesheet" href="entregas.css">
+</head>
+<body>
+<nav class="top-nav">
+  <div class="container">
+    <div class="logo">🍜 Choji's Kitchen</div>
+    <ul class="nav-links">
+      <li><a href="gerente.html">Dashboard</a></li>
+      <li><a href="cardapio.html">Cardápio</a></li>
+      <li><a href="pedidos.html">Pedidos</a></li>
+      <li><a href="entregas.html">Entregas</a></li>
+      <li><a href="usuarios.html">Usuários</a></li>
+      <li><a href="estoque.html">Estoque</a></li>
+      <li><button class="btn-sair" onclick="window.location.href='../index.html'">Sair</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+    <div class="page-header">
+      <h1 class="page-title"><span class="icon">🚚</span>Gestão de <span class="accent">Entregas</span></h1>
+      <p class="page-subtitle">Atribua pedidos e acompanhe entregas em tempo real</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card s-blue"><div class="stat-label">📦 Prontos</div><div class="stat-value">2</div></div>
+      <div class="stat-card s-yellow"><div class="stat-label">👤 Atribuídos</div><div class="stat-value">1</div></div>
+      <div class="stat-card s-purple"><div class="stat-label">➤ Em Rota</div><div class="stat-value">2</div></div>
+      <div class="stat-card s-green"><div class="stat-label">✓ Entregues</div><div class="stat-value">1</div></div>
+      <div class="stat-card s-red"><div class="stat-label">👥 Disponíveis</div><div class="stat-value">2</div></div>
+    </div>
+
+    <div class="main-grid">
+      <aside class="panel">
+        <div class="panel-title"><span class="icon">🚚</span> Entregadores</div>
+        <div class="entregadores" id="entregadoresList"></div>
+      </aside>
+
+      <section>
+        <div class="panel">
+          <div class="panel-title"><span class="icon">▽</span> Filtros</div>
+          <div class="filtros-row">
+            <div class="search-wrap"><input type="text" placeholder="Buscar pedido, cliente..."></div>
+            <select><option>Todos os status</option><option>Pronto</option><option>Atribuído</option><option>Em Rota</option><option>Entregue</option></select>
+            <select><option>Todos</option></select>
+          </div>
+        </div>
+
+        <div class="pedidos-list" id="pedidosList"></div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL ATRIBUIR -->
+<div class="modal-overlay" id="modalAtribuir">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalAtribuir')">×</button>
+    <h2>Atribuir Entregador</h2>
+    <p class="subtitle" id="aInfo"></p>
+
+    <div class="summary-box">
+      <div class="sum-top">
+        <span class="pin">📍</span>
+        <div>
+          <div class="rua" id="aRua"></div>
+          <div class="bairro"><span id="aBairro"></span> • <span id="aDist"></span></div>
+        </div>
+      </div>
+      <div class="sum-meta">
+        <div style="width:100%;">
+          <div class="row"><span class="lbl">Tempo estimado:</span><span class="val" id="aTempo"></span></div>
+          <div class="row" style="margin-top:0.3rem;"><span class="lbl">Valor:</span><span class="val red" id="aValor"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="select-label">Selecione o Entregador</div>
+    <div class="ent-select-list" id="entSelectList"></div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modalAtribuir')">Cancelar</button>
+      <button class="btn-confirm" id="btnConfirmAtribuir" onclick="confirmAtribuir()" disabled>👤 Atribuir Entregador</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3 class="footer-brand">🍜 Choji's Kitchen</h3>
+        <p class="footer-desc">Comida deliciosa e farta, assim como o Choji gosta! Sabores que aquecem o coração.</p>
+      </div>
+      <div class="footer-col"><h4>Links Rápidos</h4><ul class="footer-links"><li><a href="#">Home</a></li><li><a href="cardapio.html">Cardápio</a></li><li><a href="#">Fazer Pedido</a></li></ul></div>
+      <div class="footer-col"><h4>Contato</h4><ul class="footer-contact"><li>📍 Rua da Gastronomia, 456<br>Jardim Gourmet - São Paulo, SP</li><li>📞 (11) 3456-7890</li><li>✉ contato@chojiskitchen.com</li></ul></div>
+      <div class="footer-col"><h4>Redes Sociais</h4><div class="footer-social"><a href="#">f</a><a href="#">📷</a><a href="#">🐦</a></div></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 Choji's Kitchen. Todos os direitos reservados.</p></div>
+  </div>
+</footer>
+
+<script src="entregas.js"></script>
+</body>
+</html>

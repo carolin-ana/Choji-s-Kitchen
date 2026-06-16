@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestão do Cardápio - Choji's Kitchen</title>
+<link rel="stylesheet" href="cardapio.css">
+</head>
+<body>
+<nav class="top-nav">
+  <div class="container">
+    <div class="logo">🍜 Choji's Kitchen</div>
+    <ul class="nav-links">
+      <li><a href="gerente.html">Dashboard</a></li>
+      <li><a href="cardapio.html">Cardápio</a></li>
+      <li><a href="pedidos.html">Pedidos</a></li>
+      <li><a href="entregas.html">Entregas</a></li>
+      <li><a href="usuarios.html">Usuários</a></li>
+      <li><a href="estoque.html">Estoque</a></li>
+      <li><button class="btn-sair" onclick="window.location.href='../index.html'">Sair</button></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="container">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Gestão do <span class="accent">Cardápio</span></h1>
+        <p class="page-subtitle">Gerencie os pratos, preços e disponibilidade</p>
+      </div>
+      <button class="btn-novo" onclick="openNewModal()">+ Novo Prato</button>
+    </div>
+
+    <div class="filtros">
+      <div class="filtros-title"><span class="icon">▽</span> Filtros</div>
+      <div class="filtros-row">
+        <div class="search-wrap"><input type="text" placeholder="Buscar por nome ou descrição..."></div>
+        <select><option>Todas as categorias</option><option>Lámen</option><option>Donburi</option><option>Entrada</option><option>Sobremesa</option><option>Bebida</option></select>
+        <select><option>Todos</option><option>Disponíveis</option><option>Indisponíveis</option></select>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total de Pratos</div><div class="stat-value">10</div></div>
+      <div class="stat-card"><div class="stat-label">Disponíveis</div><div class="stat-value green">9</div></div>
+      <div class="stat-card"><div class="stat-label">Indisponíveis</div><div class="stat-value red">1</div></div>
+      <div class="stat-card"><div class="stat-label">Populares</div><div class="stat-value orange">4</div></div>
+    </div>
+
+    <div class="dish-grid" id="dishGrid"></div>
+  </div>
+</main>
+
+<!-- MODAL NOVO -->
+<div class="modal-overlay" id="modalNovo">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalNovo')">×</button>
+    <h2>Adicionar Novo Prato</h2>
+    <p class="subtitle">Preencha os dados do novo prato do cardápio</p>
+    <form onsubmit="event.preventDefault(); closeModal('modalNovo');">
+      <div class="form-group"><label>Nome do Prato *</label><input type="text" placeholder="Ex: Tonkotsu Densetsu" required></div>
+      <div class="form-group"><label>Descrição *</label><textarea placeholder="Descreva os ingredientes e o preparo..." required></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Preço (R$) *</label><input type="text" placeholder="$ 0.00" required></div>
+        <div class="form-group"><label>Categoria *</label><select><option>Lámen</option><option>Donburi</option><option>Entrada</option><option>Sobremesa</option><option>Bebida</option></select></div>
+      </div>
+      <div class="form-group"><label>URL da Imagem</label><input type="text" placeholder="https://exemplo.com/imagem.jpg"><div class="hint">Deixe em branco para usar imagem padrão</div></div>
+      <div class="checks">
+        <label><input type="checkbox" checked> Disponível</label>
+        <label><input type="checkbox"> Popular</label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('modalNovo')">✕ Cancelar</button>
+        <button type="submit" class="btn-save">💾 Adicionar Prato</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modalEditar">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalEditar')">×</button>
+    <h2>Editar Prato</h2>
+    <p class="subtitle">Atualize as informações do prato</p>
+    <form onsubmit="event.preventDefault(); closeModal('modalEditar');">
+      <div class="form-group"><label>Nome do Prato *</label><input type="text" id="editNome" required></div>
+      <div class="form-group"><label>Descrição *</label><textarea id="editDesc" required></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Preço (R$) *</label><input type="text" id="editPreco" required></div>
+        <div class="form-group"><label>Categoria *</label><select id="editCat"><option>Lámen</option><option>Donburi</option><option>Entrada</option><option>Sobremesa</option><option>Bebida</option></select></div>
+      </div>
+      <div class="form-group"><label>URL da Imagem</label><input type="text" id="editImg"></div>
+      <div class="checks">
+        <label><input type="checkbox" id="editDisp" checked> Disponível</label>
+        <label><input type="checkbox" id="editPop" checked> Popular</label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal('modalEditar')">✕ Cancelar</button>
+        <button type="submit" class="btn-save">💾 Salvar Alterações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EXCLUIR -->
+<div class="modal-overlay" id="modalExcluir">
+  <div class="modal modal-confirm">
+    <button class="modal-close" onclick="closeModal('modalExcluir')">×</button>
+    <h2>Confirmar Exclusão</h2>
+    <p class="subtitle">Esta ação não pode ser desfeita.</p>
+    <p class="confirm-text">Tem certeza que deseja excluir o prato <strong class="accent" id="delNome"></strong> do cardápio?</p>
+    <div class="confirm-card">
+      <img id="delImg" src="" alt="">
+      <p id="delDesc"></p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" onclick="closeModal('modalExcluir')">Cancelar</button>
+      <button type="button" class="btn-delete" onclick="confirmDelete()">🗑 Excluir Prato</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h3 class="footer-brand">🍜 Choji's Kitchen</h3>
+        <p class="footer-desc">Comida deliciosa e farta, assim como o Choji gosta! Sabores que aquecem o coração.</p>
+      </div>
+      <div class="footer-col"><h4>Links Rápidos</h4><ul class="footer-links"><li><a href="#">Home</a></li><li><a href="#">Cardápio</a></li><li><a href="#">Fazer Pedido</a></li></ul></div>
+      <div class="footer-col"><h4>Contato</h4><ul class="footer-contact"><li>📍 Rua da Gastronomia, 456<br>Jardim Gourmet - São Paulo, SP</li><li>📞 (11) 3456-7890</li><li>✉ contato@chojiskitchen.com</li></ul></div>
+      <div class="footer-col"><h4>Redes Sociais</h4><div class="footer-social"><a href="#">f</a><a href="#">📷</a><a href="#">🐦</a></div></div>
+    </div>
+    <div class="footer-bottom"><p>&copy; 2026 Choji's Kitchen. Todos os direitos reservados.</p></div>
+  </div>
+</footer>
+
+<script src="cardapio.js"></script>
+</body>
+</html>
