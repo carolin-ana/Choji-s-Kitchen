@@ -1,6 +1,7 @@
-/* ============================================
-   Choji's Kitchen — checkout.js
-============================================ */
+/* ============================================================
+   Choji's Kitchen — checkout.js  [ATUALIZADO]
+   Agora salva pedidos em chojiOrders (via choji-orders.js)
+============================================================ */
 
 const fmt = v => "R$ " + Number(v).toFixed(2).replace(".", ",");
 
@@ -12,7 +13,6 @@ try {
 } catch (e) {}
 
 if (!payload.items || payload.items.length === 0) {
-  // fallback de exemplo (para preview)
   payload.items = [{ name: "Tori Paitan", qty: 1, finalPrice: 69, size: "regular" }];
 }
 
@@ -22,9 +22,9 @@ let currentStep = 1;
 
 // ---- Render sidebar ----
 const sideItemsEl = document.getElementById("sideItems");
-const sideSubEl = document.getElementById("sideSubtotal");
-const sideFeeEl = document.getElementById("sideFee");
-const sideTotEl = document.getElementById("sideTotal");
+const sideSubEl   = document.getElementById("sideSubtotal");
+const sideFeeEl   = document.getElementById("sideFee");
+const sideTotEl   = document.getElementById("sideTotal");
 
 function deliveryFee() { return deliveryType === "delivery" ? 12 : 0; }
 
@@ -50,7 +50,7 @@ function renderSide() {
 }
 renderSide();
 
-// ---- Radio cards (delivery + payment) ----
+// ---- Radio cards ----
 function bindRadioGroup(selector, attr, onChange) {
   const cards = document.querySelectorAll(selector);
   cards.forEach(card => {
@@ -107,12 +107,12 @@ function renderReview() {
   const sumE = document.getElementById("sumEntrega");
   const sumP = document.getElementById("sumPagamento");
   if (deliveryType === "delivery") {
-    const addr = document.getElementById("fAddr").value;
-    const comp = document.getElementById("fComp").value;
+    const addr   = document.getElementById("fAddr").value;
+    const comp   = document.getElementById("fComp").value;
     const bairro = document.getElementById("fBairro").value;
     const cidade = document.getElementById("fCidade").value;
     const estado = document.getElementById("fEstado").value;
-    const cep = document.getElementById("fCep").value;
+    const cep    = document.getElementById("fCep").value;
     sumE.innerHTML = `
       ${addr}<br>
       ${comp ? comp + "<br>" : ""}
@@ -129,12 +129,10 @@ function renderReview() {
 // ---- Confirm ----
 document.getElementById("btnConfirm").addEventListener("click", () => {
 
-  // Captura últimos 4 dígitos do cartão (se preenchido)
   const cardNumInput = document.querySelector('#cardDataBlock input[type=text]');
-  const cardNum = cardNumInput ? cardNumInput.value.replace(/\s/g, "") : "";
+  const cardNum  = cardNumInput ? cardNumInput.value.replace(/\s/g, "") : "";
   const cardLast4 = cardNum.length >= 4 ? cardNum.slice(-4) : "****";
 
-  // Captura endereço
   const address = {
     addr:   (document.getElementById("fAddr")   || {}).value || "",
     comp:   (document.getElementById("fComp")   || {}).value || "",
@@ -144,31 +142,35 @@ document.getElementById("btnConfirm").addEventListener("click", () => {
     cep:    (document.getElementById("fCep")    || {}).value || ""
   };
 
-  // Gera número de pedido aleatório
   const orderNum = "#" + (Math.floor(Math.random() * 90000) + 10000);
 
-  // Formata data/hora atual
   const now = new Date();
   const months = ["janeiro","fevereiro","março","abril","maio","junho",
                   "julho","agosto","setembro","outubro","novembro","dezembro"];
   const dateStr = `${now.getDate()} de ${months[now.getMonth()]} de ${now.getFullYear()} às `
                 + `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 
-  // Salva dados do pedido para a página de confirmação
   const orderData = {
     orderNum,
     date:         dateStr,
-    email:        "joao.silva@email.com", // substituir pelo email do usuário logado
+    email:        "joao.silva@email.com",
+    clienteNome:  "João Silva",           // substituir pelo nome do usuário logado
+    tel:          "(11) 99999-0000",      // substituir pelo tel do usuário logado
     deliveryType,
     address,
     payType,
     cardLast4
   };
 
+  // ── NOVO: salva no sistema central de pedidos ──────────────
+  if (typeof ChojiOrders !== "undefined") {
+    ChojiOrders.addOrder(orderData, payload);
+  }
+
+  // Mantém compatibilidade com confirmacao.js
   try {
     localStorage.setItem("chojiOrderConfirm", JSON.stringify(orderData));
-    // Mantém os itens do carrinho para exibição na confirmação
-    localStorage.setItem("chojiCheckout", JSON.stringify(payload));
+    localStorage.setItem("chojiCheckout",     JSON.stringify(payload));
   } catch(e) {}
 
   window.location.href = "confirmacao.html";

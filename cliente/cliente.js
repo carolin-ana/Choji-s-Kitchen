@@ -407,34 +407,43 @@ document.querySelector(".btn-sair")?.addEventListener("click", () => {
   window.location.href = "../login/login.html";
 });
 
-// --------------- MEUS PEDIDOS ---------------
-const pedidosMock = [
-  {
-    id: 12346, status: 'em-preparo', statusLabel: 'Em Preparo',
-    data: '2026-03-22 14:30', total: 211.80,
-    itens: [{ nome: 'Tonkotsu Densetsu (Grande)', qtd: 2 }, { nome: 'Gyudon Prime', qtd: 1 }, { nome: 'Chá Verde Sencha', qtd: 1 }]
-  },
-  {
-    id: 12345, status: 'entregue', statusLabel: 'Entregue',
-    data: '2026-02-12 19:30', total: 179.00,
-    itens: [{ nome: 'Dim Sum Especial', qtd: 1 }, { nome: 'Pato à Pequim', qtd: 1 }, { nome: 'Noodles Dragon', qtd: 1 }]
-  },
-  {
-    id: 12344, status: 'entregue', statusLabel: 'Entregue',
-    data: '2026-02-10 20:15', total: 94.00,
-    itens: [{ nome: 'Lombo ao Molho Agridoce', qtd: 1 }, { nome: 'Arroz Frito Yang Chow', qtd: 1 }]
-  },
-  {
-    id: 12343, status: 'entregue', statusLabel: 'Entregue',
-    data: '2026-02-07 18:45', total: 87.50,
-    itens: [{ nome: 'Dumplings', qtd: 1 }, { nome: 'Rolinho Primavera', qtd: 1 }, { nome: 'Dim Sum Especial', qtd: 1 }]
-  },
-  {
-    id: 12342, status: 'entregue', statusLabel: 'Entregue',
-    data: '2026-02-05 21:00', total: 131.00,
-    itens: [{ nome: 'Pato à Pequim', qtd: 1 }, { nome: 'Noodles Dragon', qtd: 1 }]
-  },
-];
+// --------------- MEUS PEDIDOS (dados reais via choji-orders.js) ---------------
+// Mapeia o status interno do sistema (novo/preparo/pronto/disponivel/
+// andamento/concluida/entregue/cancelado) para o vocabulário visual
+// que esta página já usa (em-preparo / a-caminho / entregue / cancelado),
+// já que o CSS só tem essas 4 classes definidas.
+const STATUS_MAP_CLIENTE = {
+  novo: 'em-preparo', preparo: 'em-preparo', pronto: 'em-preparo',
+  disponivel: 'a-caminho', andamento: 'a-caminho',
+  concluida: 'entregue', entregue: 'entregue',
+  cancelado: 'cancelado',
+};
+const STATUS_LABEL_CLIENTE = {
+  novo: 'Recebido', preparo: 'Em Preparo', pronto: 'Pronto',
+  disponivel: 'A Caminho', andamento: 'A Caminho',
+  concluida: 'Entregue', entregue: 'Entregue',
+  cancelado: 'Cancelado',
+};
+
+function mapOrderToPedido(o) {
+  return {
+    id:          (o.id || '').replace('#', ''),
+    rawStatus:   o.status,
+    status:      STATUS_MAP_CLIENTE[o.status] || 'em-preparo',
+    statusLabel: STATUS_LABEL_CLIENTE[o.status] || (o.statusLabel || o.status),
+    data:        o.data || new Date(o.createdAt || Date.now()).toLocaleString('pt-BR'),
+    createdAt:   o.createdAt || Date.now(),
+    total:       Number(o.total || 0),
+    itens:       (o.items || []).map(it => ({ nome: it.name, qtd: it.qty })),
+  };
+}
+
+function getPedidosCliente() {
+  if (typeof ChojiOrders === 'undefined') return [];
+  return ChojiOrders.getAll()
+    .filter(o => o.status !== 'cancelado')
+    .map(mapOrderToPedido);
+}
 
 const svgReorder = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`;
 const svgTrack   = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
@@ -446,7 +455,14 @@ function renderPedidos() {
   if (!lista) return;
   const isActive = s => s === 'em-preparo' || s === 'a-caminho';
 
-  lista.innerHTML = pedidosMock.map(p => {
+  const pedidos = getPedidosCliente();
+
+  if (pedidos.length === 0) {
+    lista.innerHTML = `<div style="text-align:center;padding:3rem;color:#888;">Você ainda não fez nenhum pedido</div>`;
+    return;
+  }
+
+  lista.innerHTML = pedidos.map(p => {
     const icon = isActive(p.status) ? svgClock : svgCheck;
     const actionBtn = isActive(p.status)
       ? `<button class="btn-acompanhar">${svgTrack} Acompanhar Pedido</button>`
@@ -502,7 +518,7 @@ function renderPerfilPedidosRecentes() {
   const container = document.getElementById('perfilPedidosRecentes');
   if (!container) return;
 
-  const recentes = pedidosMock.slice(0, 2);
+  const recentes = getPedidosCliente().slice(0, 2);
   const isAtivo = s => s === 'em-preparo' || s === 'a-caminho';
 
   container.innerHTML = recentes.map(p => {
@@ -510,15 +526,14 @@ function renderPerfilPedidosRecentes() {
     const itensFmt = p.itens.map(i => `${i.qtd}x ${i.nome}`).join(', ');
     const totalFmt = p.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-    // Data formatada
-    let dataFmt = p.data;
+    // Data formatada (a partir do timestamp real do pedido)
+    const dObj = new Date(p.createdAt || Date.now());
+    const horaObj = `${String(dObj.getHours()).padStart(2,'0')}:${String(dObj.getMinutes()).padStart(2,'0')}`;
+    let dataFmt;
     if (ativo) {
-      const hora = p.data.split(' ')[1];
-      dataFmt = `Hoje às ${hora}`;
+      dataFmt = `Hoje às ${horaObj}`;
     } else {
-      const [date, time] = p.data.split(' ');
-      const [y, m, d] = date.split('-');
-      dataFmt = `${d}/${m}/${y} às ${time}`;
+      dataFmt = `${dObj.toLocaleDateString('pt-BR')} às ${horaObj}`;
     }
 
     const acompBtn = ativo
@@ -749,11 +764,21 @@ const svgCheck13 = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="1
 const svgClock13 = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>`;
 
 let rastrPedidoAtual = null;
-let rastrStepAtual   = 1; // índice do step ativo no mock (0=recebido, 1=preparo, etc.)
+let rastrStepAtual   = 1; // índice do step ativo na timeline (0=recebido, 1=preparo, etc.)
+
+// Mapeia o status real do pedido (ChojiOrders) pro índice da timeline visual
+function statusToStepIndex(rawStatus) {
+  const idx = {
+    novo: 0, preparo: 1, pronto: 2,
+    disponivel: 3, andamento: 3,
+    concluida: 4, entregue: 4,
+  };
+  return idx[rawStatus] ?? 1;
+}
 
 function abrirRastreamento(pedido) {
   rastrPedidoAtual = pedido;
-  rastrStepAtual   = 1;
+  rastrStepAtual   = pedido && pedido.rawStatus ? statusToStepIndex(pedido.rawStatus) : 1;
 
   document.getElementById('pageCardapio').classList.add('page-hidden');
   document.getElementById('pagePedidos').classList.add('page-hidden');
@@ -816,11 +841,22 @@ function renderRastreamento() {
   document.getElementById('rastrTotal').textContent = totalFmt;
 }
 
-// Botão Atualizar — avança o step visualmente (simulação)
+// Botão Atualizar — busca o status real do pedido via ChojiOrders
 document.getElementById('rastrAtualizar')?.addEventListener('click', function() {
   this.classList.add('spinning');
   setTimeout(() => {
     this.classList.remove('spinning');
+
+    if (typeof ChojiOrders !== 'undefined' && rastrPedidoAtual) {
+      const real = ChojiOrders.getAll().find(o => (o.id || '').replace('#', '') === String(rastrPedidoAtual.id));
+      if (real) {
+        rastrPedidoAtual.rawStatus = real.status;
+        rastrStepAtual = statusToStepIndex(real.status);
+        renderRastreamento();
+        return;
+      }
+    }
+    // Sem sistema real disponível: simula avanço (comportamento antigo)
     if (rastrStepAtual < timelineSteps.length - 1) rastrStepAtual++;
     renderRastreamento();
   }, 800);
@@ -843,8 +879,8 @@ renderPedidos = function() {
     btn.addEventListener('click', () => {
       const card = btn.closest('.pedido-card');
       const numText = card.querySelector('.pedido-numero span').textContent; // "#12346"
-      const id = parseInt(numText.replace('#', ''));
-      const pedido = pedidosMock.find(p => p.id === id);
+      const id = numText.replace('#', '').trim();
+      const pedido = getPedidosCliente().find(p => String(p.id) === id);
       if (pedido) abrirRastreamento(pedido);
     });
   });
@@ -858,8 +894,8 @@ renderPerfilPedidosRecentes = function() {
     btn.addEventListener('click', () => {
       const item = btn.closest('.perfil-pedido-item');
       const numText = item.querySelector('.perfil-pedido-num').textContent; // "Pedido #12346"
-      const id = parseInt(numText.replace(/\D/g, ''));
-      const pedido = pedidosMock.find(p => p.id === id);
+      const id = numText.replace(/\D/g, '').trim();
+      const pedido = getPedidosCliente().find(p => String(p.id) === id);
       if (pedido) abrirRastreamento(pedido);
     });
   });
@@ -902,10 +938,12 @@ document.querySelectorAll('.footer-links a[data-page]').forEach(link => {
       const total    = subtotal + fee - disc;
 
       pedido = {
-        id:          parseInt(numStr),
+        id:          numStr,
+        rawStatus:   'novo',
         status:      'em-preparo',
-        statusLabel: 'Em Preparo',
+        statusLabel: 'Recebido',
         data:        order.date || new Date().toLocaleString('pt-BR'),
+        createdAt:   Date.now(),
         total:       total,
         itens:       cart.items.map(it => ({ nome: it.name, qtd: it.qty }))
       };
@@ -918,10 +956,10 @@ document.querySelectorAll('.footer-links a[data-page]').forEach(link => {
     }
   } catch(e) {}
 
-  // Fallback: busca nos pedidos mock pelo id
+  // Fallback: busca nos pedidos reais pelo id
   if (!pedido) {
-    const id = parseInt(numStr);
-    pedido = pedidosMock.find(p => p.id === id) || null;
+    const id = numStr.replace('#', '').trim();
+    pedido = getPedidosCliente().find(p => String(p.id) === id) || null;
   }
 
   // Aguarda o DOM estar pronto e abre rastreamento

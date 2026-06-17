@@ -1,13 +1,9 @@
 /* =============================================================
-   Choji's Kitchen – entregas.js
-   Painel de Entregas: gestão de status, filtros, cronômetros
+   Choji's Kitchen – entregador.js  [ATUALIZADO]
+   Lê pedidos com status "disponivel" (prontos pela cozinha)
+   e gerencia o fluxo de entrega via choji-orders.js
 ============================================================= */
 
-// ─────────────────────────────────────────
-//  ESTADO
-// ─────────────────────────────────────────
-let deliveries   = [];
-let deliveryCounter = 1;
 let activeFilter = "disponiveis";
 let ticker       = null;
 
@@ -38,26 +34,18 @@ function formatElapsed(ms) {
   return `${m}:${s}`;
 }
 
-function genId() {
-  return `#${String(deliveryCounter++).padStart(3, "0")}`;
-}
-
 function statusLabel(status) {
   return { disponivel: "Disponível", andamento: "Em Andamento", concluida: "Concluída" }[status] || status;
 }
-
 function statusBadgeClass(status) {
   return { disponivel: "badge-disponivel", andamento: "badge-andamento", concluida: "badge-concluida" }[status];
 }
-
 function statusCardClass(status) {
   return { disponivel: "status-disponivel", andamento: "status-andamento", concluida: "status-concluida" }[status];
 }
-
 function statusIconClass(status) {
   return { disponivel: "ci-blue", andamento: "ci-yellow", concluida: "ci-green" }[status];
 }
-
 function statusIcon(status) {
   if (status === "disponivel") return `
     <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -78,28 +66,54 @@ function statusIcon(status) {
 }
 
 // ─────────────────────────────────────────
-//  CRUD
+//  Mapear pedido do sistema → entrega local
 // ─────────────────────────────────────────
-function addDelivery({ cliente, endereco, itens, entregador }) {
-  deliveries.push({
-    id: genId(),
-    cliente:    cliente  || "Cliente sem nome",
-    endereco:   endereco || "Endereço não informado",
-    itens:      itens    || "Itens não especificados",
-    entregador: entregador || "A definir",
-    status:     "disponivel",
-    createdAt:  Date.now(),
-  });
+function orderToDelivery(o) {
+  // Monta endereço legível
+  let endereco = "Endereço não informado";
+  if (o.deliveryType === "pickup") {
+    endereco = "Retirada no restaurante";
+  } else if (o.address) {
+    const a = o.address;
+    endereco = [a.addr, a.comp, a.bairro, `${a.cidade}/${a.estado}`]
+      .filter(Boolean).join(", ");
+  }
+
+  const itensStr = (o.items || [])
+    .map(it => `${it.qty}x ${it.name}`)
+    .join(", ");
+
+  // Status mapeado: disponivel→disponivel, andamento→andamento, concluida→concluida
+  let localStatus = "disponivel";
+  if (o.status === "andamento")             localStatus = "andamento";
+  if (o.status === "concluida" || o.status === "entregue") localStatus = "concluida";
+
+  return {
+    id:         o.id,
+    cliente:    `${o.clienteNome || o.cliente || "Cliente"} – Pedido ${o.id}`,
+    endereco,
+    itens:      itensStr || "Sem itens",
+    entregador: o.entregadorNome || "A definir",
+    status:     localStatus,
+    createdAt:  o.createdAt,
+    _raw:       o,
+  };
+}
+
+// ─────────────────────────────────────────
+//  AÇÕES
+// ─────────────────────────────────────────
+function updateStatus(id, newStatus) {
+  // newStatus aqui é o status local (andamento, concluida)
+  // mapeamos de volta para o status global
+  const globalMap = { andamento: "andamento", concluida: "concluida" };
+  ChojiOrders.updateStatus(id, globalMap[newStatus] || newStatus);
   render();
 }
 
-function updateStatus(id, newStatus) {
-  const d = deliveries.find(d => d.id === id);
-  if (d) { d.status = newStatus; render(); }
-}
-
 function removeDelivery(id) {
-  deliveries = deliveries.filter(d => d.id !== id);
+  // Cancelar pedido no sistema central
+  ChojiOrders.cancelOrder(id);
   render();
 }
 
@@ -107,16 +121,21 @@ function removeDelivery(id) {
 //  RENDER
 // ─────────────────────────────────────────
 function render() {
+  // Busca pedidos relevantes para entregador
+  const allOrders = ChojiOrders.getAll().filter(o =>
+    ["disponivel","andamento","concluida","entregue"].includes(o.status)
+  );
+
+  const deliveries = allOrders.map(orderToDelivery);
+
   const disponiveis = deliveries.filter(d => d.status === "disponivel");
   const andamento   = deliveries.filter(d => d.status === "andamento");
   const concluidas  = deliveries.filter(d => d.status === "concluida");
 
-  // Stats
   statDisponiveis.textContent = disponiveis.length;
   statAndamento.textContent   = andamento.length;
   statConcluidas.textContent  = concluidas.length;
 
-  // Filter visible list
   let visible;
   if      (activeFilter === "disponiveis") visible = disponiveis;
   else if (activeFilter === "andamento")   visible = andamento;
@@ -158,7 +177,6 @@ function createCard(d) {
   card.className = `delivery-card ${statusCardClass(d.status)}`;
   card.dataset.id = d.id;
 
-  // Actions per status
   let actions = "";
   if (d.status === "disponivel") {
     actions = `
@@ -196,7 +214,6 @@ function createCard(d) {
     </div>
   `;
 
-  // Wire actions
   card.querySelectorAll(".btn-card-action").forEach(btn => {
     btn.addEventListener("click", () => {
       const action = btn.dataset.action;
@@ -209,18 +226,25 @@ function createCard(d) {
 }
 
 // ─────────────────────────────────────────
-//  TICKER — atualiza timers a cada 1s
+//  TICKER — timers a cada 1s + polling 5s
 // ─────────────────────────────────────────
 function startTicker() {
   if (ticker) return;
   ticker = setInterval(() => {
+    // Atualiza timers sem re-renderizar tudo
     document.querySelectorAll("[data-timer]").forEach(el => {
       const id = el.dataset.timer;
-      const d  = deliveries.find(d => d.id === id);
-      if (d) el.textContent = formatElapsed(Date.now() - d.createdAt);
+      const o  = ChojiOrders.getAll().find(o => o.id === id);
+      if (o) el.textContent = formatElapsed(Date.now() - o.createdAt);
     });
   }, 1000);
+
+  // Polling para novos pedidos (a cada 5s)
+  setInterval(render, 5000);
 }
+
+// Sincroniza quando outra aba muda o localStorage
+ChojiOrders.onUpdate(() => render());
 
 // ─────────────────────────────────────────
 //  FILTROS
@@ -235,7 +259,7 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 });
 
 // ─────────────────────────────────────────
-//  SAIR — volta para a página principal
+//  SAIR
 // ─────────────────────────────────────────
 if (btnSair) {
   btnSair.addEventListener("click", () => {
@@ -244,8 +268,10 @@ if (btnSair) {
 }
 
 // ─────────────────────────────────────────
-//  MODAL
+//  MODAL (adicionar entrega manual)
 // ─────────────────────────────────────────
+let manualCounter = 900; // IDs manuais começam em #900+
+
 function openModal() {
   [inputCliente, inputEndereco, inputItens, inputEntregador].forEach(i => i.value = "");
   modalOverlay.classList.add("open");
@@ -263,10 +289,32 @@ btnConfirmModal.addEventListener("click", () => {
   const endereco   = inputEndereco.value.trim();
   const itens      = inputItens.value.trim();
   const entregador = inputEntregador.value.trim();
-  addDelivery({ cliente, endereco, itens, entregador });
+
+  // Cria um pedido manual diretamente no sistema central
+  const orders = ChojiOrders.getAll();
+  const manualId = "#M" + (++manualCounter);
+  orders.unshift({
+    id:           manualId,
+    clienteNome:  cliente || "Cliente",
+    cliente:      cliente || "Cliente",
+    tel:          "",
+    data:         new Date().toLocaleString("pt-BR"),
+    items:        itens ? [{ name: itens, qty: 1, finalPrice: 0 }] : [],
+    total:        0,
+    deliveryType: "delivery",
+    address:      { addr: endereco },
+    payType:      "cash",
+    entregadorNome: entregador || "A definir",
+    status:       "disponivel",
+    statusLabel:  "Atribuído",
+    createdAt:    Date.now(),
+    startedAt:    Date.now(),
+  });
+  ChojiOrders.saveAll(orders);
+
   closeModal();
-  // Switch to disponíveis tab
   document.querySelector('[data-filter="disponiveis"]').click();
+  render();
 });
 
 [inputCliente, inputEndereco, inputItens, inputEntregador].forEach(inp => {
@@ -277,48 +325,7 @@ btnConfirmModal.addEventListener("click", () => {
 });
 
 // ─────────────────────────────────────────
-//  DEMO DATA
+//  INIT
 // ─────────────────────────────────────────
-function initDemo() {
-  const now = Date.now();
-
-  deliveries = [
-    {
-      id: genId(), status: "disponivel",
-      cliente: "Naruto Uzumaki – Pedido #038",
-      endereco: "Rua dos Ramen, 9 – Apto 7",
-      itens: "3x Tonkotsu Densetsu, 1x Gyoza",
-      entregador: "A definir",
-      createdAt: now - 2 * 60 * 1000,
-    },
-    {
-      id: genId(), status: "andamento",
-      cliente: "Sakura Haruno – Pedido #037",
-      endereco: "Av. Konoha, 521 – Casa",
-      itens: "1x Shoyu Kyoto, 2x Takoyaki",
-      entregador: "Kenji Yamada",
-      createdAt: now - 11 * 60 * 1000,
-    },
-    {
-      id: genId(), status: "andamento",
-      cliente: "Rock Lee – Pedido #036",
-      endereco: "Travessa da Juventude, 42",
-      itens: "2x Tori Paitan, 1x Matcha Latte",
-      entregador: "Hana Mori",
-      createdAt: now - 7 * 60 * 1000,
-    },
-    {
-      id: genId(), status: "concluida",
-      cliente: "Kakashi Hatake – Pedido #035",
-      endereco: "Rua do Sharingan, 1 – Bloco B",
-      itens: "1x Missô Akai Especial",
-      entregador: "Ryu Tanaka",
-      createdAt: now - 45 * 60 * 1000,
-    },
-  ];
-
-  render();
-  startTicker();
-}
-
-initDemo();
+render();
+startTicker();

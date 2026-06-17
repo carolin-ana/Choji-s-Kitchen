@@ -1,5 +1,11 @@
+/* =============================================================
+   Choji's Kitchen — gerente.js  [ATUALIZADO]
+   Tabela "Pedidos Recentes" lê dados reais via choji-orders.js
+   O restante (gráficos, stats) permanece igual.
+============================================================= */
+
 // ============================================================
-// DADOS POR PERÍODO
+// DADOS POR PERÍODO (inalterado)
 // ============================================================
 const PERIODOS = {
   semana: {
@@ -68,7 +74,7 @@ const PERIODO_LABELS = { semana: 'Esta Semana', mes: 'Este Mês', ano: 'Este Ano
 let periodoAtual = 'semana';
 
 // ============================================================
-// UTILITÁRIOS
+// UTILITÁRIOS (inalterado)
 // ============================================================
 function fmt(n) {
   if (n >= 1000000) return 'R$ ' + (n/1000000).toFixed(1).replace('.',',') + 'M';
@@ -94,7 +100,51 @@ function setupCanvas(canvas) {
 }
 
 // ============================================================
-// ATUALIZA CARDS DO TOPO
+// PEDIDOS RECENTES — lê do localStorage
+// ============================================================
+function renderRecentOrders() {
+  const tbody = document.querySelector(".orders-table tbody");
+  if (!tbody) return;
+
+  const orders = ChojiOrders.getAll().slice(0, 5); // últimos 5
+
+  if (orders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align:center;color:#888;padding:1.5rem;">
+          Nenhum pedido ainda
+        </td>
+      </tr>`;
+    return;
+  }
+
+  // Map status → classe CSS do gerente.css
+  const statusCss = {
+    novo:       { cls: "rota",     label: "Recebido" },
+    preparo:    { cls: "rota",     label: "Em Preparo" },
+    pronto:     { cls: "rota",     label: "Pronto" },
+    disponivel: { cls: "rota",     label: "Em Rota" },
+    andamento:  { cls: "rota",     label: "Em Rota" },
+    concluida:  { cls: "entregue", label: "Entregue" },
+    entregue:   { cls: "entregue", label: "Entregue" },
+    cancelado:  { cls: "rota",     label: "Cancelado" },
+  };
+
+  tbody.innerHTML = orders.map(o => {
+    const s = statusCss[o.status] || { cls: "rota", label: o.status };
+    return `
+      <tr>
+        <td>${o.id}</td>
+        <td>${o.clienteNome || o.cliente || "Cliente"}</td>
+        <td class="total">R$ ${Number(o.total || 0).toFixed(2)}</td>
+        <td><span class="status ${s.cls}">${s.label}</span></td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// ============================================================
+// ATUALIZA CARDS DO TOPO (inalterado)
 // ============================================================
 function updateCards(p) {
   const d = PERIODOS[p];
@@ -103,10 +153,8 @@ function updateCards(p) {
   document.querySelector('.section-title').innerHTML =
     `Desempenho de <span class="accent">${lbl}</span>`;
 
-  // Highlight cards
   const cards = document.querySelectorAll('.h-card');
 
-  // Receita
   cards[0].querySelector('.h-card-value').textContent = fmt(d.receita);
   cards[0].querySelector('.h-card-trend').textContent =
     `↗ ${pct(d.receita, d.receitaAnterior)} vs período anterior (${fmt(d.receitaAnterior)})`;
@@ -115,21 +163,18 @@ function updateCards(p) {
   cards[0].querySelector('.progress-bar').style.width =
     Math.min(100, Math.round(d.receita / d.meta * 100)) + '%';
 
-  // Pedidos
   cards[1].querySelector('.h-card-value').textContent = d.pedidos;
   cards[1].querySelector('.h-card-trend').textContent =
     `↗ ${pct(d.pedidos, d.pedidosAnterior)} vs período anterior (${d.pedidosAnterior} pedidos)`;
   cards[1].querySelector('.h-card-footer').innerHTML =
     `<span>Entregues: ${d.entregues}</span><span>Em andamento: ${d.andamento}</span>`;
 
-  // Ticket
   cards[2].querySelector('.h-card-value').textContent = fmt(d.ticket);
   cards[2].querySelector('.h-card-trend').textContent =
     `↗ ${pct(d.ticket, d.ticketAnterior)} vs período anterior (${fmt(d.ticketAnterior)})`;
   cards[2].querySelector('.h-card-footer').innerHTML =
     `<span>Melhor: ${d.melhorDia}</span>`;
 
-  // Stat cards
   const stats = document.querySelectorAll('.stat-card');
   stats[0].querySelector('.stat-value').textContent = fmt(d.receita);
   stats[0].querySelector('.stat-trend').textContent = `↗ ${pct(d.receita, d.receitaAnterior)} vs período anterior`;
@@ -142,7 +187,7 @@ function updateCards(p) {
 }
 
 // ============================================================
-// LINE CHART — Vendas
+// GRÁFICOS (inalterados)
 // ============================================================
 function drawLineChart() {
   const canvas = document.getElementById('salesChart');
@@ -164,27 +209,22 @@ function drawLineChart() {
   ctx.clearRect(0, 0, w, h);
   ctx.font = '11px Segoe UI, Arial';
 
-  // Grid + Y labels
   for (let i = 0; i <= steps; i++) {
     const y   = pad.t + (ch * i / steps);
     const val = yMax - ((yMax - yMin) * i / steps);
-
     ctx.strokeStyle = '#f0f0f0'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
     ctx.setLineDash([]);
-
     ctx.fillStyle = '#999'; ctx.textAlign = 'right';
     const label = val >= 1000 ? (val/1000).toFixed(0)+'k' : Math.round(val).toString();
     ctx.fillText(label, pad.l - 8, y + 4);
   }
 
-  // Points
   const pts = data.map((v, i) => ({
     x: pad.l + (cw * i / Math.max(data.length - 1, 1)),
     y: pad.t + ch - ((v - yMin) / (yMax - yMin)) * ch,
   }));
 
-  // Area gradient
   const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
   grad.addColorStop(0, 'rgba(188,26,55,0.18)');
   grad.addColorStop(1, 'rgba(188,26,55,0)');
@@ -200,7 +240,6 @@ function drawLineChart() {
   ctx.lineTo(pts[pts.length - 1].x, pad.t + ch);
   ctx.closePath(); ctx.fill();
 
-  // Line
   ctx.strokeStyle = '#BC1A37'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
   ctx.beginPath();
   pts.forEach((p, i) => {
@@ -211,21 +250,16 @@ function drawLineChart() {
   });
   ctx.stroke();
 
-  // Dots
   pts.forEach(p => {
     ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
     ctx.fillStyle = '#fff'; ctx.fill();
     ctx.strokeStyle = '#BC1A37'; ctx.lineWidth = 2.5; ctx.stroke();
   });
 
-  // X labels
   ctx.fillStyle = '#888'; ctx.textAlign = 'center'; ctx.font = '11px Segoe UI, Arial';
   labels.forEach((l, i) => ctx.fillText(l, pts[i].x, pad.t + ch + 22));
 }
 
-// ============================================================
-// BAR CHART — Pratos mais vendidos
-// ============================================================
 function drawBarChart() {
   const canvas = document.getElementById('dishesChart');
   if (!canvas) return;
@@ -243,7 +277,6 @@ function drawBarChart() {
   ctx.clearRect(0, 0, w, h);
   ctx.font = '11px Segoe UI, Arial';
 
-  // Grid + Y labels
   for (let i = 0; i <= steps; i++) {
     const y   = pad.t + (ch * i / steps);
     const val = Math.round(yMax * (1 - i / steps));
@@ -263,7 +296,6 @@ function drawBarChart() {
     const y  = pad.t + ch - bh;
     const r  = Math.min(5, barW / 4);
 
-    // Gradient bar
     const g = ctx.createLinearGradient(0, y, 0, y + bh);
     g.addColorStop(0, '#e03a5a');
     g.addColorStop(1, '#BC1A37');
@@ -278,20 +310,15 @@ function drawBarChart() {
     ctx.arcTo(x, y, x + r, y, r);
     ctx.closePath(); ctx.fill();
 
-    // Value on top
     ctx.fillStyle = '#444'; ctx.textAlign = 'center'; ctx.font = 'bold 11px Segoe UI, Arial';
     ctx.fillText(v, x + barW / 2, y - 6);
 
-    // X labels
     ctx.font = '11px Segoe UI, Arial'; ctx.fillStyle = '#888';
     const lbl = labels[i].length > 8 ? labels[i].slice(0, 8) + '…' : labels[i];
     ctx.fillText(lbl, x + barW / 2, pad.t + ch + 18);
   });
 }
 
-// ============================================================
-// DONUT CHART — Categorias
-// ============================================================
 function drawPieChart() {
   const canvas = document.getElementById('categoryChart');
   if (!canvas) return;
@@ -319,12 +346,10 @@ function drawPieChart() {
     start += ang;
   });
 
-  // Inner hole (donut)
   ctx.beginPath();
   ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
   ctx.fillStyle = '#fff'; ctx.fill();
 
-  // Center text
   ctx.textAlign = 'center';
   ctx.font = 'bold 20px Georgia, serif';
   ctx.fillStyle = '#1a1a1a';
@@ -333,7 +358,6 @@ function drawPieChart() {
   ctx.fillStyle = '#888';
   ctx.fillText('total', cx, cy + 20);
 
-  // Legend — 2 columns
   const ly = h - legendH + 12;
   const colW = w / 2;
   ctx.font = '12px Segoe UI, Arial';
@@ -360,12 +384,20 @@ function renderAll() {
   drawLineChart();
   drawBarChart();
   drawPieChart();
+  renderRecentOrders();      // ← NOVO: atualiza tabela com dados reais
 }
 
 // ============================================================
-// SELETOR DE PERÍODO
+// BOTÃO "Ver Todos" → vai para pedidos.html
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  const btnVerTodos = document.querySelector('.btn-outline');
+  if (btnVerTodos) {
+    btnVerTodos.addEventListener('click', () => {
+      window.location.href = 'pedidos.html';
+    });
+  }
+
   const select = document.querySelector('.period-select');
   if (select) {
     select.addEventListener('change', () => {
@@ -373,7 +405,14 @@ document.addEventListener('DOMContentLoaded', () => {
       renderAll();
     });
   }
+
   renderAll();
+
+  // Polling a cada 10s para atualizar pedidos recentes
+  setInterval(renderRecentOrders, 10000);
+
+  // Sincroniza quando outra aba faz um pedido
+  ChojiOrders.onUpdate(() => renderRecentOrders());
 });
 
 let resizeTimer;
