@@ -408,8 +408,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderAll();
 
-  // Polling a cada 10s para atualizar pedidos recentes
-  setInterval(renderRecentOrders, 10000);
+  // Polling a cada 3s para atualizar pedidos recentes
+  setInterval(renderRecentOrders, 3000);
 
   // Sincroniza quando outra aba faz um pedido
   ChojiOrders.onUpdate(() => renderRecentOrders());

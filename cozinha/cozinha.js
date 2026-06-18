@@ -178,11 +178,11 @@ function createOrderCard(order, colStatus) {
 }
 
 // ─────────────────────────────────────────
-//  POLLING — atualiza a cada 5 segundos
+//  POLLING — atualiza a cada 3 segundos
 // ─────────────────────────────────────────
 function startLive() {
   if (liveInterval) return;
-  liveInterval = setInterval(render, 5000);
+  liveInterval = setInterval(render, 3000);
 }
 
 function stopLive() {
@@ -190,7 +190,7 @@ function stopLive() {
   liveInterval = null;
 }
 
-// Sincroniza quando outra aba muda o localStorage
+// Sincroniza imediatamente quando qualquer aba (inclusive a mesma) salva um pedido
 ChojiOrders.onUpdate(() => render());
 
 // ─────────────────────────────────────────

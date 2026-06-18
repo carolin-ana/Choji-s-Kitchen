@@ -13,6 +13,18 @@ const ChojiOrders = (() => {
 
   const KEY = "chojiOrders";
 
+  // ── BroadcastChannel: sincroniza mudanças entre abas da MESMA ORIGEM ──────
+  // O evento "storage" não dispara na aba que fez a mudança.
+  // O BroadcastChannel resolve isso: avisa todas as abas (inclusive a própria).
+  let _bc = null;
+  try {
+    _bc = new BroadcastChannel("chojiOrders_sync");
+  } catch(e) { /* navegadores antigos: fallback para storage event */ }
+
+  function _broadcast() {
+    try { if (_bc) _bc.postMessage({ type: "update" }); } catch(e) {}
+  }
+
   // ── Leitura / Escrita ─────────────────────────────────────
   function getAll() {
     try {
@@ -22,7 +34,10 @@ const ChojiOrders = (() => {
   }
 
   function saveAll(orders) {
-    try { localStorage.setItem(KEY, JSON.stringify(orders)); } catch (e) {}
+    try {
+      localStorage.setItem(KEY, JSON.stringify(orders));
+      _broadcast(); // avisa outras abas E a própria aba via BroadcastChannel
+    } catch (e) {}
   }
 
   // ── Adicionar pedido (chamado pelo checkout.js) ────────────
@@ -150,11 +165,19 @@ const ChojiOrders = (() => {
   };
 
   // ── Polling: chama callback quando localStorage muda ──────
-  // (útil para sincronizar abas abertas ao mesmo tempo)
+  // Escuta tanto o evento "storage" (outras abas) quanto o BroadcastChannel
+  // (mesma aba e outras abas da mesma origem).
   function onUpdate(callback) {
+    // Evento padrão: só dispara em OUTRAS abas
     window.addEventListener("storage", e => {
       if (e.key === KEY) callback(getAll());
     });
+    // BroadcastChannel: dispara em TODAS as abas incluindo a que salvou
+    try {
+      if (_bc) _bc.addEventListener("message", e => {
+        if (e.data && e.data.type === "update") callback(getAll());
+      });
+    } catch(e) {}
   }
 
   // ── Formatar valor em BRL ─────────────────────────────────

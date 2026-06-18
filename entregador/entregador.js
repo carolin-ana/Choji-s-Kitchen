@@ -239,8 +239,8 @@ function startTicker() {
     });
   }, 1000);
 
-  // Polling para novos pedidos (a cada 5s)
-  setInterval(render, 5000);
+  // Polling para novos pedidos (a cada 3s)
+  setInterval(render, 3000);
 }
 
 // Sincroniza quando outra aba muda o localStorage

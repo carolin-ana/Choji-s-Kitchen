@@ -313,6 +313,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Sincroniza quando outra aba muda o localStorage
   ChojiOrders.onUpdate(() => renderPedidos());
 
-  // Polling a cada 5s (pega pedidos novos vindos da cozinha)
-  setInterval(renderPedidos, 5000);
+  // Polling a cada 3s (pega pedidos novos vindos da cozinha)
+  setInterval(renderPedidos, 3000);
 });

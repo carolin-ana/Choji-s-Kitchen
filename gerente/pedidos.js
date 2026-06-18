@@ -243,7 +243,7 @@ document.querySelectorAll(".modal-overlay").forEach(o => {
 //  POLLING + SINCRONIZAÇÃO
 // ─────────────────────────────────────────
 ChojiOrders.onUpdate(() => render());
-setInterval(render, 5000);
+setInterval(render, 3000);
 
 // ─────────────────────────────────────────
 //  INIT

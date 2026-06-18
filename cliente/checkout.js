@@ -162,9 +162,30 @@ document.getElementById("btnConfirm").addEventListener("click", () => {
     cardLast4
   };
 
-  // ── NOVO: salva no sistema central de pedidos ──────────────
+  // ── Salva no sistema central de pedidos ──────────────────
   if (typeof ChojiOrders !== "undefined") {
     ChojiOrders.addOrder(orderData, payload);
+  } else {
+    // Fallback de emergência: salva manualmente se choji-orders.js não carregou
+    console.warn("ChojiOrders não disponível — salvando pedido manualmente.");
+    try {
+      const existing = JSON.parse(localStorage.getItem("chojiOrders") || "[]");
+      const subtotal = payload.items.reduce((s, it) => s + it.finalPrice * it.qty, 0);
+      const fee      = orderData.deliveryType === "pickup" ? 0 : 12;
+      const total    = subtotal + fee;
+      existing.unshift({
+        id: orderData.orderNum, cliente: orderData.email,
+        clienteNome: orderData.clienteNome || "Cliente",
+        tel: orderData.tel || "", data: orderData.date,
+        items: payload.items, subtotal, fee, discount: 0, total,
+        deliveryType: orderData.deliveryType, address: orderData.address,
+        payType: orderData.payType, cardLast4: orderData.cardLast4 || "",
+        status: "novo", statusLabel: "Recebido",
+        createdAt: Date.now(), startedAt: Date.now(),
+        entregadorId: null, entregadorNome: null, atribuidoAs: null,
+      });
+      localStorage.setItem("chojiOrders", JSON.stringify(existing));
+    } catch(e) {}
   }
 
   // Mantém compatibilidade com confirmacao.js
