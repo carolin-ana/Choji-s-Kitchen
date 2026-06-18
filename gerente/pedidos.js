@@ -89,6 +89,14 @@ function render() {
         <div class="col-cli">
           <div class="nome">👤 ${p.clienteNome || p.cliente || "Cliente"}</div>
           <div class="data">📅 ${p.data || "—"}</div>
+          <div class="itens-resumo">${(p.items||[]).map(it => {
+            const opts=[];
+            if(it.size==="grande") opts.push("Grande");
+            if(it.adicionais&&it.adicionais.length) opts.push("➕"+it.adicionais.join("+"));
+            if(it.remover&&it.remover.length) opts.push("➖"+it.remover.join("-"));
+            const suf=opts.length?` (${opts.join(", ")})`:"";
+            return `${it.qty}x ${it.name}${suf}`;
+          }).join(" · ")}</div>
         </div>
         <div class="col-total">
           <span class="lbl">Total</span>
@@ -144,15 +152,25 @@ function openDetails(id) {
 
   const items = p.items || [];
   document.getElementById("dQtd").textContent = items.length;
-  document.getElementById("dItens").innerHTML = items.map(it => `
+  document.getElementById("dItens").innerHTML = items.map(it => {
+    const opts = [];
+    if (it.size === "grande")                  opts.push("🍜 Porção Grande");
+    if (it.adicionais && it.adicionais.length) opts.push("➕ " + it.adicionais.join(", "));
+    if (it.remover    && it.remover.length)    opts.push("➖ sem " + it.remover.join(", "));
+    if (it.obs)                                opts.push("📝 " + it.obs);
+    const optsHTML = opts.length
+      ? `<div class="item-opts-detail">${opts.map(o => `<span>${o}</span>`).join("")}</div>`
+      : "";
+    return `
     <div class="item-row">
       <div>
         <div class="nome">${it.name}</div>
-        <div class="qtd">${it.qty}x • R$ ${Number(it.finalPrice || 0).toFixed(2)} cada</div>
+        <div class="qtd">${it.qty}x · R$ ${Number(it.finalPrice || 0).toFixed(2)} cada</div>
+        ${optsHTML}
       </div>
       <div class="preco">R$ ${Number((it.finalPrice || 0) * it.qty).toFixed(2)}</div>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 
   document.getElementById("dTotal").textContent = `R$ ${Number(p.total || 0).toFixed(2)}`;
   openModal("modalDetalhes");

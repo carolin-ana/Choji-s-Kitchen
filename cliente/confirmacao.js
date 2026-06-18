@@ -47,10 +47,22 @@ document.getElementById("cfEmail").textContent      = orderData.email;
 // ---- Items ----
 const itemsEl = document.getElementById("cfItems");
 payload.items.forEach(it => {
+  const opts = [];
+  if (it.size === "grande")                  opts.push("🍜 Porção Grande");
+  if (it.adicionais && it.adicionais.length) opts.push("➕ " + it.adicionais.join(", "));
+  if (it.remover    && it.remover.length)    opts.push("➖ sem " + it.remover.join(", "));
+  if (it.obs)                                opts.push("📝 " + it.obs);
+  const optsHTML = opts.length
+    ? `<div class="cf-item-opts">${opts.map(o => `<span>${o}</span>`).join("")}</div>`
+    : "";
+
   const row = document.createElement("div");
   row.className = "cf-item-row";
   row.innerHTML = `
-    <span>${it.qty}x ${it.name}</span>
+    <div>
+      <span>${it.qty}x ${it.name}</span>
+      ${optsHTML}
+    </div>
     <span class="cf-item-price">${fmt(it.finalPrice * it.qty)}</span>
   `;
   itemsEl.appendChild(row);

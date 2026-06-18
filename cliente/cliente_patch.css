@@ -1,0 +1,18 @@
+/* ============================================================
+   PATCH — cole no final do seu cliente.css
+   Detalhes dos opcionais (tamanho, adicionais, remover, obs)
+   exibidos em cada item do carrinho lateral.
+============================================================ */
+
+/* ── Detalhes dos opcionais no item do carrinho ── */
+.cart-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: .18rem;
+  margin: .3rem 0 .15rem;
+}
+.cart-item-details span {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}

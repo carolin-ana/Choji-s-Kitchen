@@ -1,0 +1,11 @@
+/* ============================================================
+   PATCH — cole no final do seu cozinha.css
+   Detalhes dos opcionais nos cards de pedido da cozinha.
+============================================================ */
+.item-opts {
+  font-size: .8rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: .15rem;
+  line-height: 1.4;
+}

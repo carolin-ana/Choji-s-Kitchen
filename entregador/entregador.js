@@ -79,9 +79,15 @@ function orderToDelivery(o) {
       .filter(Boolean).join(", ");
   }
 
-  const itensStr = (o.items || [])
-    .map(it => `${it.qty}x ${it.name}`)
-    .join(", ");
+  const itensStr = (o.items || []).map(it => {
+    const opts = [];
+    if (it.size === "grande")                  opts.push("Grande");
+    if (it.adicionais && it.adicionais.length) opts.push("➕" + it.adicionais.join("+"));
+    if (it.remover    && it.remover.length)    opts.push("➖" + it.remover.join("-"));
+    if (it.obs)                                opts.push("📝" + it.obs);
+    const suffix = opts.length ? ` (${opts.join(", ")})` : "";
+    return `${it.qty}x ${it.name}${suffix}`;
+  }).join(" · ");
 
   // Status mapeado: disponivel→disponivel, andamento→andamento, concluida→concluida
   let localStatus = "disponivel";
@@ -123,7 +129,8 @@ function removeDelivery(id) {
 function render() {
   // Busca pedidos relevantes para entregador
   const allOrders = ChojiOrders.getAll().filter(o =>
-    ["disponivel","andamento","concluida","entregue"].includes(o.status)
+    ["disponivel","andamento","concluida","entregue"].includes(o.status) &&
+    o.deliveryType !== "pickup"   // retirada no local não passa pelo entregador
   );
 
   const deliveries = allOrders.map(orderToDelivery);

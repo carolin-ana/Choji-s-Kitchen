@@ -1,0 +1,15 @@
+/* ============================================================
+   PATCH — cole no final do seu confirmacao.css
+   Detalhes dos opcionais na página de confirmação.
+============================================================ */
+.cf-item-opts {
+  display: flex;
+  flex-direction: column;
+  gap: .12rem;
+  margin-top: .2rem;
+}
+.cf-item-opts span {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}

@@ -31,12 +31,22 @@ function deliveryFee() { return deliveryType === "delivery" ? 12 : 0; }
 function renderSide() {
   sideItemsEl.innerHTML = "";
   payload.items.forEach(it => {
+    // Montar linhas de opcionais
+    const opts = [];
+    if (it.size === "grande") opts.push("🍜 Porção Grande");
+    if (it.adicionais && it.adicionais.length) opts.push("➕ " + it.adicionais.join(", "));
+    if (it.remover    && it.remover.length)    opts.push("➖ sem " + it.remover.join(", "));
+    if (it.obs)                                opts.push("📝 " + it.obs);
+    const optsHTML = opts.map(o =>
+      `<div class="co-side-item-opt">${o}</div>`
+    ).join("");
+
     const row = document.createElement("div");
     row.className = "co-side-item";
     row.innerHTML = `
       <div class="co-side-item-info">
         <div class="co-side-item-name">${it.qty}x ${it.name}</div>
-        <div class="co-side-item-size">${it.size || "regular"}</div>
+        ${optsHTML}
       </div>
       <div class="co-side-item-price">${fmt(it.finalPrice * it.qty)}</div>
     `;
@@ -162,30 +172,9 @@ document.getElementById("btnConfirm").addEventListener("click", () => {
     cardLast4
   };
 
-  // ── Salva no sistema central de pedidos ──────────────────
+  // ── NOVO: salva no sistema central de pedidos ──────────────
   if (typeof ChojiOrders !== "undefined") {
     ChojiOrders.addOrder(orderData, payload);
-  } else {
-    // Fallback de emergência: salva manualmente se choji-orders.js não carregou
-    console.warn("ChojiOrders não disponível — salvando pedido manualmente.");
-    try {
-      const existing = JSON.parse(localStorage.getItem("chojiOrders") || "[]");
-      const subtotal = payload.items.reduce((s, it) => s + it.finalPrice * it.qty, 0);
-      const fee      = orderData.deliveryType === "pickup" ? 0 : 12;
-      const total    = subtotal + fee;
-      existing.unshift({
-        id: orderData.orderNum, cliente: orderData.email,
-        clienteNome: orderData.clienteNome || "Cliente",
-        tel: orderData.tel || "", data: orderData.date,
-        items: payload.items, subtotal, fee, discount: 0, total,
-        deliveryType: orderData.deliveryType, address: orderData.address,
-        payType: orderData.payType, cardLast4: orderData.cardLast4 || "",
-        status: "novo", statusLabel: "Recebido",
-        createdAt: Date.now(), startedAt: Date.now(),
-        entregadorId: null, entregadorNome: null, atribuidoAs: null,
-      });
-      localStorage.setItem("chojiOrders", JSON.stringify(existing));
-    } catch(e) {}
   }
 
   // Mantém compatibilidade com confirmacao.js

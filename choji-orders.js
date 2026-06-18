@@ -49,13 +49,26 @@ const ChojiOrders = (() => {
     const disc     = cartPayload.discountPct ? subtotal * (cartPayload.discountPct / 100) : 0;
     const total    = subtotal + fee - disc;
 
+    // Garantir que os opcionais de cada item são preservados
+    const itemsComOpcionais = (cartPayload.items || []).map(it => ({
+      id:         it.id,
+      name:       it.name,
+      img:        it.img        || "",
+      qty:        it.qty,
+      finalPrice: it.finalPrice,
+      size:       it.size       || "regular",
+      adicionais: it.adicionais || [],
+      remover:    it.remover    || [],
+      obs:        it.obs        || "",
+    }));
+
     const order = {
       id:           orderData.orderNum,           // ex: "#55418"
       cliente:      orderData.email,              // substituir por nome quando tiver login
       clienteNome:  orderData.clienteNome || "Cliente",
       tel:          orderData.tel || "",
       data:         orderData.date,
-      items:        cartPayload.items,
+      items:        itemsComOpcionais,
       subtotal,
       fee,
       discount:     disc,

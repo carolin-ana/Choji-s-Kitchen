@@ -91,34 +91,46 @@ function renderCart() {
     const div = document.createElement("div");
     div.className = "cart-item";
     div.dataset.cartId = entry.item.id;
+    // Montar linha de detalhes dos opcionais
+    const detalhes = [];
+    if (entry.size === "grande") detalhes.push("🍜 Porção Grande");
+    if (entry.adicionais && entry.adicionais.length) detalhes.push("➕ " + entry.adicionais.join(", "));
+    if (entry.remover && entry.remover.length)       detalhes.push("➖ sem " + entry.remover.join(", "));
+    if (entry.obs)                                    detalhes.push("📝 " + entry.obs);
+    const detalhesHTML = detalhes.length
+      ? `<div class="cart-item-details">${detalhes.map(d => `<span>${d}</span>`).join("")}</div>`
+      : "";
+
     div.innerHTML = `
       <img class="cart-item-img" src="${entry.item.img}" alt="${entry.item.name}" />
       <div class="cart-item-info">
         <div class="cart-item-name">${entry.item.name}</div>
+        ${detalhesHTML}
         <div class="cart-item-price">${fmt(entry.finalPrice)}</div>
         <div class="cart-item-qty">
-          <button class="qty-btn" data-action="dec" data-id="${entry.item.id}">−</button>
+          <button class="qty-btn" data-action="dec" data-id="${entry.item.id}" data-idx="${cart.indexOf(entry)}">−</button>
           <span class="qty-value">${entry.qty}</span>
-          <button class="qty-btn" data-action="inc" data-id="${entry.item.id}">+</button>
+          <button class="qty-btn" data-action="inc" data-id="${entry.item.id}" data-idx="${cart.indexOf(entry)}">+</button>
         </div>
       </div>
-      <button class="cart-item-remove" data-id="${entry.item.id}" title="Remover">✕</button>
+      <button class="cart-item-remove" data-id="${entry.item.id}" data-idx="${cart.indexOf(entry)}" title="Remover">✕</button>
     `;
     cartItemsEl.appendChild(div);
   });
 
   updateTotals();
 
-  // Eventos qty e remover
+  // Eventos qty e remover — usa data-idx para suportar múltiplas
+  // configurações do mesmo item (opcionais diferentes)
   cartItemsEl.querySelectorAll(".qty-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      const id = Number(btn.dataset.id);
-      const entry = cart.find(c => c.item.id === id);
+      const idx = Number(btn.dataset.idx);
+      const entry = cart[idx];
       if (!entry) return;
       if (btn.dataset.action === "inc") entry.qty++;
       else if (btn.dataset.action === "dec") {
         entry.qty--;
-        if (entry.qty <= 0) cart = cart.filter(c => c.item.id !== id);
+        if (entry.qty <= 0) cart.splice(idx, 1);
       }
       renderCart();
     });
@@ -126,7 +138,8 @@ function renderCart() {
 
   cartItemsEl.querySelectorAll(".cart-item-remove").forEach(btn => {
     btn.addEventListener("click", () => {
-      cart = cart.filter(c => c.item.id !== Number(btn.dataset.id));
+      const idx = Number(btn.dataset.idx);
+      cart.splice(idx, 1);
       renderCart();
     });
   });
@@ -254,7 +267,33 @@ function openModal(item) {
 
   document.getElementById("modalAddBtn").addEventListener("click", () => {
     const finalPrice = calcPrice();
-    addToCart(item, finalPrice);
+
+    // Tamanho da porção
+    const tamanhoVal = modal.querySelector('input[name="tamanho"]:checked')?.value;
+    const size = tamanhoVal === "30" ? "grande" : "regular";
+
+    // Adicionais marcados
+    const adicionaisSelecionados = [];
+    modal.querySelectorAll(".adicional-check:checked").forEach(cb => {
+      const label = cb.closest("label").querySelector("span")?.textContent?.trim();
+      if (label) adicionaisSelecionados.push(label);
+    });
+
+    // Ingredientes para remover
+    const removerSelecionados = [];
+    modal.querySelectorAll(".modal-section").forEach(sec => {
+      if (sec.querySelector("h4")?.textContent?.includes("Remover")) {
+        sec.querySelectorAll("input[type=checkbox]:checked").forEach(cb => {
+          const label = cb.closest("label").querySelector("span")?.textContent?.trim();
+          if (label) removerSelecionados.push(label);
+        });
+      }
+    });
+
+    // Observações
+    const obs = modal.querySelector(".modal-obs")?.value?.trim() || "";
+
+    addToCart(item, finalPrice, { size, adicionais: adicionaisSelecionados, remover: removerSelecionados, obs });
     closeModal();
   });
 
@@ -262,12 +301,21 @@ function openModal(item) {
 }
 
 // --------------- CARRINHO ---------------
-function addToCart(item, finalPrice) {
-  const existing = cart.find(c => c.item.id === item.id);
+function addToCart(item, finalPrice, opts = {}) {
+  // Cada configuração de opcionais é um item distinto no carrinho
+  // (ex: mesmo prato, tamanhos diferentes = entradas separadas)
+  const { size = "regular", adicionais = [], remover = [], obs = "" } = opts;
+  const existing = cart.find(c =>
+    c.item.id === item.id &&
+    c.size === size &&
+    JSON.stringify(c.adicionais) === JSON.stringify(adicionais) &&
+    JSON.stringify(c.remover) === JSON.stringify(remover) &&
+    c.obs === obs
+  );
   if (existing) {
     existing.qty++;
   } else {
-    cart.push({ item, qty: 1, finalPrice });
+    cart.push({ item, qty: 1, finalPrice, size, adicionais, remover, obs });
   }
   renderCart();
   showToast();
@@ -379,12 +427,15 @@ document.getElementById("cartCheckoutBtn").addEventListener("click", () => {
   if (cart.length === 0) return;
   const payload = {
     items: cart.map(c => ({
-      id: c.item.id,
-      name: c.item.name,
-      img: c.item.img,
-      qty: c.qty,
+      id:         c.item.id,
+      name:       c.item.name,
+      img:        c.item.img,
+      qty:        c.qty,
       finalPrice: c.finalPrice,
-      size: c.size || "regular"
+      size:       c.size || "regular",
+      adicionais: c.adicionais || [],
+      remover:    c.remover    || [],
+      obs:        c.obs        || ""
     })),
     discountPct: discountPct || 0
   };

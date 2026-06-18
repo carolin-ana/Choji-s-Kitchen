@@ -1,0 +1,10 @@
+/* ============================================================
+   PATCH — cole no final do seu checkout.css
+   Detalhes dos opcionais na sidebar do checkout.
+============================================================ */
+.co-side-item-opt {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: .15rem;
+  line-height: 1.35;
+}

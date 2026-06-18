@@ -44,9 +44,16 @@ function waitText(order) {
 function buildItemsHTML(items) {
   if (!items || items.length === 0) return "—";
   return items.map(it => {
-    const variant = it.size ? ` <span class="item-variant">(${it.size})</span>` : "";
-    return `${it.qty}x ${it.name}${variant}`;
-  }).join("<br>");
+    const opts = [];
+    if (it.size === "grande")                  opts.push("Porção Grande");
+    if (it.adicionais && it.adicionais.length) opts.push("➕ " + it.adicionais.join(", "));
+    if (it.remover    && it.remover.length)    opts.push("➖ sem " + it.remover.join(", "));
+    if (it.obs)                                opts.push("📝 " + it.obs);
+    const optsLine = opts.length
+      ? `<div class="item-opts">${opts.join(" · ")}</div>`
+      : "";
+    return `<div>${it.qty}x ${it.name}${optsLine}</div>`;
+  }).join("");
 }
 
 // ─────────────────────────────────────────
@@ -137,18 +144,28 @@ function createOrderCard(order, colStatus) {
       </button>
       <button class="btn-action btn-cancelar" data-action="cancel">Cancelar</button>`;
   } else if (colStatus === "pronto") {
-    actions = `
-      <button class="btn-action btn-entregar" data-action="disponivel">
-        🚀 Enviar para Entrega
-      </button>`;
+    if (order.deliveryType === "pickup") {
+      actions = `
+        <button class="btn-action btn-entregar" data-action="concluida">
+          ✅ Pedido Retirado
+        </button>`;
+    } else {
+      actions = `
+        <button class="btn-action btn-entregar" data-action="disponivel">
+          🚀 Enviar para Entrega
+        </button>`;
+    }
   }
 
   // Nome do cliente legível
   const clienteLabel = order.clienteNome || order.cliente || "Cliente";
+  const tipoEntrega  = order.deliveryType === "pickup"
+    ? '<span style="font-size:.78rem;background:#fef3c7;color:#92400e;padding:.15rem .5rem;border-radius:6px;margin-left:.4rem;">🏠 Retirada</span>'
+    : '<span style="font-size:.78rem;background:#dbeafe;color:#1d4ed8;padding:.15rem .5rem;border-radius:6px;margin-left:.4rem;">🚚 Delivery</span>';
 
   card.innerHTML = `
     <div class="order-top">
-      <span class="order-id">Pedido ${order.id}</span>
+      <span class="order-id">Pedido ${order.id}${tipoEntrega}</span>
       <span class="order-status-badge ${badge.cls}">${badge.text}</span>
     </div>
     <div class="order-time">${formatHHMM(order.createdAt)}</div>

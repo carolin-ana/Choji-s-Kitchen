@@ -58,15 +58,24 @@ function buildEndereco(o) {
 }
 
 function buildItens(o) {
-  return (o.items || []).map(it => ({
-    n: `${it.qty}x ${it.name}`,
-    p: (it.finalPrice || 0) * it.qty,
-  }));
+  return (o.items || []).map(it => {
+    const opts = [];
+    if (it.size === "grande")                  opts.push("Porção Grande");
+    if (it.adicionais && it.adicionais.length) opts.push("➕ " + it.adicionais.join(", "));
+    if (it.remover    && it.remover.length)    opts.push("➖ sem " + it.remover.join(", "));
+    if (it.obs)                                opts.push("📝 " + it.obs);
+    const suffix = opts.length ? ` <span class="item-opt-tag">${opts.join(" · ")}</span>` : "";
+    return {
+      n: `${it.qty}x ${it.name}${suffix}`,
+      p: (it.finalPrice || 0) * it.qty,
+    };
+  });
 }
 
 function getRelevantOrders() {
   return ChojiOrders.getAll().filter(o =>
-    ["pronto", "disponivel", "andamento", "concluida", "entregue"].includes(o.status)
+    ["pronto", "disponivel", "andamento", "concluida", "entregue"].includes(o.status) &&
+    o.deliveryType !== "pickup"   // retirada no local não aparece na gestão de entregas
   );
 }
 

@@ -1,0 +1,9 @@
+/* ============================================================
+   PATCH — cole no final do seu entregas.css
+   Detalhe dos opcionais nos cards de entrega.
+============================================================ */
+.item-opt-tag {
+  font-size: .75rem;
+  color: #888;
+  font-weight: 400;
+}
