@@ -622,6 +622,32 @@ function showPerfilToast(msg) {
 }
 
 function initPerfil() {
+  // --- Carrega dados salvos no localStorage ---
+  const perfilSalvo = JSON.parse(localStorage.getItem('chojiPerfil') || '{}');
+
+  // Informações pessoais
+  const camposPessoal = { nome: 'Nome', email: 'Email', tel: 'Tel', cpf: 'Cpf' };
+  Object.entries(camposPessoal).forEach(([key, f]) => {
+    if (perfilSalvo[key] !== undefined) {
+      const disp = document.getElementById('disp' + f);
+      const inp  = document.getElementById('inp'  + f);
+      if (disp) disp.textContent = perfilSalvo[key];
+      if (inp)  inp.value        = perfilSalvo[key];
+    }
+  });
+
+  // Endereço
+  const camposEnd = { end_cep: 'Cep', end_end: 'End', end_comp: 'Comp',
+                      end_bairro: 'Bairro', end_cidade: 'Cidade', end_estado: 'Estado' };
+  Object.entries(camposEnd).forEach(([key, f]) => {
+    if (perfilSalvo[key] !== undefined) {
+      const disp = document.getElementById('disp' + f);
+      const inp  = document.getElementById('inp'  + f);
+      if (disp) disp.textContent = perfilSalvo[key];
+      if (inp)  inp.value        = perfilSalvo[key];
+    }
+  });
+
   // --- Informações Pessoais ---
   const pessoalFields = ['Nome', 'Email', 'Tel', 'Cpf'];
   const btnEdit = document.getElementById('btnEditPessoal');
@@ -637,13 +663,17 @@ function initPerfil() {
   });
 
   document.getElementById('btnSavePessoal')?.addEventListener('click', () => {
+    const perfil = JSON.parse(localStorage.getItem('chojiPerfil') || '{}');
     pessoalFields.forEach(f => {
       const val = document.getElementById('inp' + f).value;
       const disp = document.getElementById('disp' + f);
       disp.textContent = val;
       disp.style.display = '';
       document.getElementById('inp' + f).style.display = 'none';
+      // Salva no perfil (chave lowercase: nome, email, tel, cpf)
+      perfil[f.toLowerCase()] = val;
     });
+    localStorage.setItem('chojiPerfil', JSON.stringify(perfil));
     actP.style.display = 'none';
     btnEdit.style.display = '';
     showPerfilToast('✔ Informações salvas!');
@@ -673,13 +703,17 @@ function initPerfil() {
   });
 
   document.getElementById('btnSaveEnd')?.addEventListener('click', () => {
+    const perfil = JSON.parse(localStorage.getItem('chojiPerfil') || '{}');
     endFields.forEach(f => {
       const val = document.getElementById('inp' + f).value;
       const disp = document.getElementById('disp' + f);
       disp.textContent = val;
       disp.style.display = '';
       document.getElementById('inp' + f).style.display = 'none';
+      // Salva no perfil (chave lowercase: cep, end, comp, bairro, cidade, estado)
+      perfil['end_' + f.toLowerCase()] = val;
     });
+    localStorage.setItem('chojiPerfil', JSON.stringify(perfil));
     actE.style.display = 'none';
     btnEditEnd.style.display = '';
     showPerfilToast('✔ Endereço salvo!');

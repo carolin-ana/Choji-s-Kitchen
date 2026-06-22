@@ -5,6 +5,17 @@
 
 const fmt = v => "R$ " + Number(v).toFixed(2).replace(".", ",");
 
+// ---- Load perfil do cliente (salvo na página de perfil) ----
+let _perfil = {};
+try {
+  const raw = localStorage.getItem("chojiPerfil");
+  if (raw) _perfil = JSON.parse(raw);
+} catch (e) {}
+
+function perfilVal(key, fallback) {
+  return (_perfil[key] && String(_perfil[key]).trim()) ? _perfil[key] : fallback;
+}
+
 // ---- Load cart ----
 let payload = { items: [], discountPct: 0 };
 try {
@@ -59,6 +70,22 @@ function renderSide() {
   sideTotEl.textContent = fmt(subtotal + fee);
 }
 renderSide();
+
+// ---- Pré-preencher endereço do perfil salvo ----
+(function preencherEndereco() {
+  const campos = {
+    fAddr:   perfilVal("end_end",    ""),
+    fComp:   perfilVal("end_comp",   ""),
+    fBairro: perfilVal("end_bairro", ""),
+    fCidade: perfilVal("end_cidade", ""),
+    fEstado: perfilVal("end_estado", ""),
+    fCep:    perfilVal("end_cep",    ""),
+  };
+  Object.entries(campos).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && val && !el.value) el.value = val;
+  });
+})();
 
 // ---- Radio cards ----
 function bindRadioGroup(selector, attr, onChange) {
@@ -163,9 +190,9 @@ document.getElementById("btnConfirm").addEventListener("click", () => {
   const orderData = {
     orderNum,
     date:         dateStr,
-    email:        "joao.silva@email.com",
-    clienteNome:  "João Silva",           // substituir pelo nome do usuário logado
-    tel:          "(11) 99999-0000",      // substituir pelo tel do usuário logado
+    email:        perfilVal("email", "joao.silva@email.com"),
+    clienteNome:  perfilVal("nome",  "João Silva"),
+    tel:          perfilVal("tel",   "(11) 99999-0000"),
     deliveryType,
     address,
     payType,
